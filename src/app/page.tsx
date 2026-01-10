@@ -132,7 +132,7 @@ export default function Home() {
         }
         return [
           ...prev,
-          { symbol: "GOOGL", name: "Alphabet Inc.", shares: 5, value: 8750, esgScore: 74, weight: 5 },
+          { symbol: "GOOGL", name: "Alphabet Inc.", shares: 5, value: 8750, esgScore: 74, weight: 5, sector: "Technology" },
         ];
       });
     } else if (data?.action === "remove-aapl") {
@@ -145,7 +145,7 @@ export default function Home() {
         }
         return [
           ...prev,
-          { symbol: "AAPL", name: "Apple Inc.", shares: 10, value: 1900, esgScore: 72 },
+          { symbol: "AAPL", name: "Apple Inc.", shares: 10, value: 1900, esgScore: 72, sector: "Technology" },
         ];
       });
     }

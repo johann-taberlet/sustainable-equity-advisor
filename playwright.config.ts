@@ -28,6 +28,7 @@ export default defineConfig({
     timeout: 120000,
     env: {
       USE_MOCK_LLM: "true",
+      USE_MOCK_FMP: "true",
     },
   },
 });

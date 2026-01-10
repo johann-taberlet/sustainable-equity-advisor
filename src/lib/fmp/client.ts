@@ -1,9 +1,17 @@
 /**
  * Financial Modeling Prep (FMP) API Client
  * Handles ESG data fetching with caching and mock fallback
+ *
+ * API Docs: https://site.financialmodelingprep.com/developer/docs/stable/esg-ratings
  */
 
 import { normalizeNumericScore } from "./normalize";
+
+// Check if we should use mock data (for tests or when no API key)
+const USE_MOCK_FMP = process.env.USE_MOCK_FMP === "true";
+
+// FMP API configuration
+const FMP_BASE_URL = "https://financialmodelingprep.com/stable";
 
 export interface ESGData {
   symbol: string;
@@ -161,6 +169,13 @@ function setCachedESGData(symbol: string, data: ESGData): void {
 }
 
 /**
+ * Get mock ESG data for a symbol
+ */
+function getMockESGData(symbol: string): ESGData | null {
+  return mockESGData[symbol] || mockESGData[symbol.toUpperCase()] || null;
+}
+
+/**
  * Fetch ESG data from FMP API
  * Falls back to mock data if API unavailable or no key
  */
@@ -171,11 +186,11 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
     return cached;
   }
 
+  // Use mock data if explicitly set (for tests) or no API key
   const apiKey = process.env.FMP_API_KEY;
 
-  // If no API key, use mock data
-  if (!apiKey) {
-    const mockData = mockESGData[symbol] || mockESGData[symbol.toUpperCase()];
+  if (USE_MOCK_FMP || !apiKey) {
+    const mockData = getMockESGData(symbol);
     if (mockData) {
       setCachedESGData(symbol, mockData);
       return mockData;
@@ -184,16 +199,17 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
   }
 
   try {
-    // FMP ESG endpoint
+    // FMP ESG Ratings endpoint (stable API)
+    // Docs: https://site.financialmodelingprep.com/developer/docs/stable/esg-ratings
     const response = await fetch(
-      `https://financialmodelingprep.com/api/v4/esg-environmental-social-governance-data?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`,
+      `${FMP_BASE_URL}/esg-ratings?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`,
       { next: { revalidate: 86400 } } // Cache for 24 hours
     );
 
     if (!response.ok) {
       console.warn(`FMP API error for ${symbol}: ${response.status}`);
       // Fallback to mock data
-      const mockData = mockESGData[symbol];
+      const mockData = getMockESGData(symbol);
       if (mockData) {
         setCachedESGData(symbol, mockData);
         return mockData;
@@ -203,9 +219,12 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
 
     const data = await response.json();
 
-    if (!data || data.length === 0) {
+    // Handle different response formats
+    const fmpData = Array.isArray(data) ? data[0] : data;
+
+    if (!fmpData) {
       // Fallback to mock data
-      const mockData = mockESGData[symbol];
+      const mockData = getMockESGData(symbol);
       if (mockData) {
         setCachedESGData(symbol, mockData);
         return mockData;
@@ -214,15 +233,27 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
     }
 
     // Normalize FMP response to our format using the normalization module
-    const fmpData = data[0];
+    // FMP stable API may use different field names
     const esgData: ESGData = {
       symbol: fmpData.symbol || symbol,
-      companyName: fmpData.companyName || symbol,
-      esgScore: normalizeNumericScore(fmpData.ESGScore, "FMP"),
-      environmentalScore: normalizeNumericScore(fmpData.environmentalScore, "FMP"),
-      socialScore: normalizeNumericScore(fmpData.socialScore, "FMP"),
-      governanceScore: normalizeNumericScore(fmpData.governanceScore, "FMP"),
-      lastUpdated: fmpData.date || new Date().toISOString(),
+      companyName: fmpData.companyName || fmpData.company || symbol,
+      esgScore: normalizeNumericScore(
+        fmpData.ESGScore ?? fmpData.esgScore ?? fmpData.totalEsg,
+        "FMP"
+      ),
+      environmentalScore: normalizeNumericScore(
+        fmpData.environmentalScore ?? fmpData.environmental,
+        "FMP"
+      ),
+      socialScore: normalizeNumericScore(
+        fmpData.socialScore ?? fmpData.social,
+        "FMP"
+      ),
+      governanceScore: normalizeNumericScore(
+        fmpData.governanceScore ?? fmpData.governance,
+        "FMP"
+      ),
+      lastUpdated: fmpData.date || fmpData.lastUpdated || new Date().toISOString(),
     };
 
     setCachedESGData(symbol, esgData);
@@ -230,7 +261,7 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
   } catch (error) {
     console.error(`Error fetching ESG data for ${symbol}:`, error);
     // Fallback to mock data
-    const mockData = mockESGData[symbol];
+    const mockData = getMockESGData(symbol);
     if (mockData) {
       setCachedESGData(symbol, mockData);
       return mockData;

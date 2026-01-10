@@ -35,12 +35,28 @@ interface Holding {
   environmentalScore?: number;
   socialScore?: number;
   governanceScore?: number;
+  weight?: number;
+  change?: number;
 }
 
+// Demo portfolio with 11 stocks as per PRD
 const initialHoldings: Holding[] = [
-  { symbol: "MSFT", name: "Microsoft Corp.", shares: 100, value: 42000, esgScore: 85 },
-  { symbol: "NVDA", name: "NVIDIA Corp.", shares: 50, value: 62500, esgScore: 68 },
+  { symbol: "AAPL", name: "Apple Inc.", shares: 150, value: 28500, esgScore: 72, weight: 15 },
+  { symbol: "MSFT", name: "Microsoft Corp.", shares: 100, value: 42000, esgScore: 85, weight: 12 },
+  { symbol: "NESN.SW", name: "Nestlé S.A.", shares: 80, value: 8800, esgScore: 78, weight: 10 },
+  { symbol: "ASML", name: "ASML Holding N.V.", shares: 12, value: 9600, esgScore: 81, weight: 10 },
+  { symbol: "VWS.CO", name: "Vestas Wind Systems", shares: 200, value: 5600, esgScore: 88, weight: 8 },
+  { symbol: "NOVN.SW", name: "Novartis AG", shares: 60, value: 5400, esgScore: 76, weight: 8 },
+  { symbol: "SU.PA", name: "Schneider Electric", shares: 35, value: 7350, esgScore: 84, weight: 8 },
+  { symbol: "TSM", name: "Taiwan Semiconductor", shares: 40, value: 6800, esgScore: 71, weight: 8 },
+  { symbol: "ULVR.L", name: "Unilever PLC", shares: 120, value: 5520, esgScore: 82, weight: 7 },
+  { symbol: "ORSTED.CO", name: "Ørsted A/S", shares: 50, value: 4500, esgScore: 91, weight: 7 },
+  { symbol: "FSLR", name: "First Solar Inc.", shares: 30, value: 5250, esgScore: 79, weight: 7 },
 ];
+
+// Benchmark data (MSCI ESG Leaders Index mock)
+const benchmarkESGScore = 72;
+const benchmarkDailyChange = 1.2;
 
 function getESGColorClass(score: number): string {
   if (score >= 80) return "text-green-600 dark:text-green-400";
@@ -94,20 +110,39 @@ export default function Home() {
     fetchESGData();
   }, []);
 
-  const handlePortfolioUpdate = useCallback(() => {
-    // Add AAPL to portfolio when updated via chat
-    setHoldings((prev) => {
-      if (prev.some((h) => h.symbol === "AAPL")) {
-        return prev;
-      }
-      return [
-        ...prev,
-        { symbol: "AAPL", name: "Apple Inc.", shares: 10, value: 1900, esgScore: 72 },
-      ];
-    });
+  const handlePortfolioUpdate = useCallback((data?: { symbol?: string; action?: string }) => {
+    // Handle portfolio updates via chat
+    if (data?.symbol === "GOOGL" || data?.action === "add-googl") {
+      setHoldings((prev) => {
+        if (prev.some((h) => h.symbol === "GOOGL")) {
+          return prev;
+        }
+        return [
+          ...prev,
+          { symbol: "GOOGL", name: "Alphabet Inc.", shares: 5, value: 8750, esgScore: 74, weight: 5 },
+        ];
+      });
+    } else if (data?.action === "remove-aapl") {
+      setHoldings((prev) => prev.filter((h) => h.symbol !== "AAPL"));
+    } else {
+      // Default: Add AAPL if not present
+      setHoldings((prev) => {
+        if (prev.some((h) => h.symbol === "AAPL")) {
+          return prev;
+        }
+        return [
+          ...prev,
+          { symbol: "AAPL", name: "Apple Inc.", shares: 10, value: 1900, esgScore: 72 },
+        ];
+      });
+    }
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
+
+  // Calculate daily change (mock for demo)
+  const dailyChange = 1.85; // percentage
+  const dailyChangeValue = totalValue * (dailyChange / 100);
 
   // Calculate aggregate ESG scores
   const avgESGScore = holdings.length > 0
@@ -164,11 +199,42 @@ export default function Home() {
           <div data-testid="portfolio-content" className="space-y-4">
             <Card>
               <CardHeader>
-                <CardTitle>Portfolio Value</CardTitle>
+                <CardTitle>Portfolio Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-3xl font-bold" data-testid="portfolio-value">
-                  CHF {totalValue.toLocaleString("en-CH")}
+                <div className="flex flex-wrap items-baseline gap-4">
+                  <div className="text-3xl font-bold" data-testid="portfolio-value">
+                    CHF {totalValue.toLocaleString("en-CH")}
+                  </div>
+                  <div
+                    data-testid="portfolio-change"
+                    className={`text-lg font-semibold ${dailyChange >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
+                  >
+                    {dailyChange >= 0 ? "+" : ""}{dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}CHF {dailyChangeValue.toLocaleString("en-CH", { maximumFractionDigits: 0 })})
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Benchmark Comparison Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Benchmark Comparison</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div data-testid="benchmark" className="space-y-2">
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">vs MSCI ESG Leaders Index</span>
+                    <span className={`font-semibold ${(dailyChange - benchmarkDailyChange) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {(dailyChange - benchmarkDailyChange) >= 0 ? "+" : ""}{(dailyChange - benchmarkDailyChange).toFixed(2)}% outperformance
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-muted-foreground">ESG Score vs Benchmark</span>
+                    <span className={`font-semibold ${(avgESGScore - benchmarkESGScore) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
+                      {(avgESGScore - benchmarkESGScore) >= 0 ? "+" : ""}{avgESGScore - benchmarkESGScore} points
+                    </span>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -181,7 +247,7 @@ export default function Home() {
               <CardContent>
                 <div className="space-y-4" data-testid="esg-breakdown">
                   <div className="flex items-center justify-between">
-                    <span className="text-2xl font-bold" data-testid="esg-score" data-esg-score={avgESGScore}>
+                    <span className="text-2xl font-bold" data-testid="portfolio-esg" data-esg-score={avgESGScore}>
                       <span className={getESGColorClass(avgESGScore)}>{avgESGScore}</span>/100
                     </span>
                     <div data-testid="esg-gauge" className="w-32">
@@ -224,7 +290,7 @@ export default function Home() {
                       <TableHead>Name</TableHead>
                       <TableHead className="text-right">Shares</TableHead>
                       <TableHead className="text-right">Value</TableHead>
-                      <TableHead className="text-right" data-testid="portfolio-esg">ESG</TableHead>
+                      <TableHead className="text-right">ESG</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -238,7 +304,7 @@ export default function Home() {
                         </TableCell>
                         <TableCell className="text-right">
                           <span
-                            data-testid="esg-score"
+                            data-testid="holding-esg-score"
                             data-esg-score={holding.esgScore}
                             className={`font-medium ${getESGColorClass(holding.esgScore)}`}
                           >

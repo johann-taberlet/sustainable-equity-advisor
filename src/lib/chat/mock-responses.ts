@@ -56,11 +56,39 @@ Microsoft demonstrates strong performance across all ESG categories, with partic
 {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "View ESG Report", "action": "esg-report", "variant": "outline"}}}
 {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "Add New Holding", "action": "add-holding", "variant": "secondary"}}}`,
   },
+  // Add shares to portfolio
   {
-    pattern: /add.*(\d+).*shares?.*of\s+(\w+)/i,
+    pattern: /add.*(?:\d+\s+)?shares?.*(?:of\s+)?(googl|google|alphabet)/i,
+    response: `I've successfully added GOOGL (Alphabet Inc.) to your portfolio!
+
+**Transaction Complete**
+- Stock: GOOGL (Alphabet Inc.)
+- Action: Added to portfolio
+- ESG Score: 74/100
+
+Your portfolio has been updated. GOOGL has a solid ESG profile with strong governance practices. You can view the updated holdings in your Portfolio Dashboard.`,
+  },
+  {
+    pattern: /add.*(?:\d+\s+)?shares?.*(?:of\s+)?(\w+)/i,
     response: `I've added the shares to your portfolio. Here's your updated portfolio:
 
 {"surfaceUpdate": {"component": "PortfolioSummaryCard", "props": {"totalValue": 1268500, "currency": "CHF", "change": 18500, "changePercent": 1.48, "esgScore": 76}}}`,
+  },
+  // Remove shares from portfolio
+  {
+    pattern: /remove.*(?:all\s+)?(aapl|apple).*(?:shares?|from)/i,
+    response: `I've removed AAPL (Apple Inc.) from your portfolio.
+
+**Transaction Complete**
+- Stock: AAPL (Apple Inc.)
+- Action: Sold/Removed all shares
+- Previous ESG Score: 72/100
+
+Your portfolio has been updated. The removal of Apple Inc. may affect your overall portfolio ESG score. Check the Portfolio Dashboard to see the updated allocation.`,
+  },
+  {
+    pattern: /remove|sell.*shares?/i,
+    response: `I've processed your sell order and removed the shares from your portfolio. Your portfolio has been updated accordingly.`,
   },
   {
     pattern: /hello|hi|hey/i,

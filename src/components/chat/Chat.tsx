@@ -7,7 +7,7 @@ import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatProps {
-  onPortfolioUpdate?: (data: unknown) => void;
+  onPortfolioUpdate?: (data?: { symbol?: string; action?: string }) => void;
 }
 
 interface ConversationMessage {
@@ -78,8 +78,12 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
       ]);
 
       // Check if the message updates portfolio
-      if (/add.*shares|portfolio/i.test(content)) {
-        onPortfolioUpdate?.({ updated: true });
+      if (/add.*(?:googl|google|alphabet)/i.test(content)) {
+        onPortfolioUpdate?.({ symbol: "GOOGL", action: "add-googl" });
+      } else if (/remove.*(?:aapl|apple)/i.test(content)) {
+        onPortfolioUpdate?.({ action: "remove-aapl" });
+      } else if (/add.*shares|portfolio/i.test(content)) {
+        onPortfolioUpdate?.({});
       }
     } catch (error) {
       console.error("Chat error:", error);

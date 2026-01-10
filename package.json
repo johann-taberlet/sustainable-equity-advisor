@@ -17,6 +17,7 @@
     "test:epic7": "playwright test e2e/epic-7-screening.spec.ts",
     "test:epic9": "playwright test e2e/epic-9-security.spec.ts",
     "test:epic10": "playwright test e2e/epic-10-dashboard.spec.ts",
+    "test:epic14": "playwright test e2e/epic-14-openrouter.spec.ts",
     "test:ui": "playwright test --ui",
     "test:report": "playwright show-report"
   },

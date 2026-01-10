@@ -3,15 +3,21 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
-import { getMockResponse, type ChatMessage as ChatMessageType } from "@/lib/chat";
+import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface ChatProps {
   onPortfolioUpdate?: (data: unknown) => void;
 }
 
+interface ConversationMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export function Chat({ onPortfolioUpdate }: ChatProps) {
   const [messages, setMessages] = useState<ChatMessageType[]>([]);
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -36,25 +42,60 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    try {
+      // Call the API route
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          message: content,
+          history: conversationHistory,
+        }),
+      });
 
-    const response = getMockResponse(content);
-    const assistantMessage: ChatMessageType = {
-      id: crypto.randomUUID(),
-      role: "assistant",
-      content: response,
-      timestamp: new Date(),
-    };
+      if (!response.ok) {
+        throw new Error(`API error: ${response.status}`);
+      }
 
-    setMessages((prev) => [...prev, assistantMessage]);
-    setIsLoading(false);
+      const data = await response.json();
 
-    // Check if the message updates portfolio
-    if (/add.*shares|portfolio/i.test(content)) {
-      onPortfolioUpdate?.({ updated: true });
+      const assistantMessage: ChatMessageType = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: data.message,
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, assistantMessage]);
+
+      // Update conversation history for context
+      setConversationHistory((prev) => [
+        ...prev,
+        { role: "user", content },
+        { role: "assistant", content: data.message },
+      ]);
+
+      // Check if the message updates portfolio
+      if (/add.*shares|portfolio/i.test(content)) {
+        onPortfolioUpdate?.({ updated: true });
+      }
+    } catch (error) {
+      console.error("Chat error:", error);
+
+      const errorMessage: ChatMessageType = {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: "I apologize, but I encountered an error processing your request. Please try again.",
+        timestamp: new Date(),
+      };
+
+      setMessages((prev) => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
     }
-  }, [onPortfolioUpdate]);
+  }, [conversationHistory, onPortfolioUpdate]);
 
   const handleAction = useCallback((action: string) => {
     // Handle A2UI button actions by sending a follow-up message

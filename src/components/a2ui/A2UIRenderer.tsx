@@ -8,11 +8,12 @@ import { ActionButton } from "./ActionButton";
 import type { ComponentType } from "react";
 
 // Component registry mapping A2UI component names to React components
+// Using 'unknown' cast to handle varying prop types safely
 const componentRegistry: Record<string, ComponentType<Record<string, unknown>>> = {
-  PortfolioSummaryCard: PortfolioSummaryCard as ComponentType<Record<string, unknown>>,
-  ESGScoreGauge: ESGScoreGauge as ComponentType<Record<string, unknown>>,
-  HoldingsList: HoldingsList as ComponentType<Record<string, unknown>>,
-  ActionButton: ActionButton as ComponentType<Record<string, unknown>>,
+  PortfolioSummaryCard: PortfolioSummaryCard as unknown as ComponentType<Record<string, unknown>>,
+  ESGScoreGauge: ESGScoreGauge as unknown as ComponentType<Record<string, unknown>>,
+  HoldingsList: HoldingsList as unknown as ComponentType<Record<string, unknown>>,
+  ActionButton: ActionButton as unknown as ComponentType<Record<string, unknown>>,
 };
 
 interface A2UIRendererProps {

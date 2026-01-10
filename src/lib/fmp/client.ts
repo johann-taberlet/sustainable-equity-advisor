@@ -3,6 +3,8 @@
  * Handles ESG data fetching with caching and mock fallback
  */
 
+import { normalizeNumericScore } from "./normalize";
+
 export interface ESGData {
   symbol: string;
   companyName: string;
@@ -211,15 +213,15 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
       return null;
     }
 
-    // Normalize FMP response to our format
+    // Normalize FMP response to our format using the normalization module
     const fmpData = data[0];
     const esgData: ESGData = {
       symbol: fmpData.symbol || symbol,
       companyName: fmpData.companyName || symbol,
-      esgScore: normalizeScore(fmpData.ESGScore),
-      environmentalScore: normalizeScore(fmpData.environmentalScore),
-      socialScore: normalizeScore(fmpData.socialScore),
-      governanceScore: normalizeScore(fmpData.governanceScore),
+      esgScore: normalizeNumericScore(fmpData.ESGScore, "FMP"),
+      environmentalScore: normalizeNumericScore(fmpData.environmentalScore, "FMP"),
+      socialScore: normalizeNumericScore(fmpData.socialScore, "FMP"),
+      governanceScore: normalizeNumericScore(fmpData.governanceScore, "FMP"),
       lastUpdated: fmpData.date || new Date().toISOString(),
     };
 
@@ -257,16 +259,6 @@ export async function fetchESGDataBatch(
   return results;
 }
 
-/**
- * Normalize ESG scores to 0-100 range
- */
-function normalizeScore(score: number | undefined | null): number {
-  if (score === undefined || score === null || Number.isNaN(score)) {
-    return 0;
-  }
-  // Clamp to 0-100
-  return Math.max(0, Math.min(100, Math.round(score)));
-}
 
 /**
  * Check if symbol has ESG data available

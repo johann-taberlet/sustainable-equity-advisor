@@ -9,6 +9,106 @@ interface MockResponse {
 }
 
 const mockResponses: MockResponse[] = [
+  // European tech stocks screening
+  {
+    pattern: /european.*tech.*stocks|tech.*stocks.*european|europe.*technology/i,
+    response: `I found several European technology stocks with ESG scores above 70:
+
+**Screening Results: European Tech (ESG > 70)**
+
+| Company | Symbol | ESG Score | Sector |
+|---------|--------|-----------|--------|
+| ASML Holding | ASML | 81 | Technology |
+| SAP SE | SAP | 79 | Technology |
+| Schneider Electric | SU.PA | 84 | Tech/Industrial |
+
+These companies demonstrate strong ESG practices within the European technology sector. ASML and Schneider Electric are leaders in sustainable manufacturing practices.`,
+  },
+  // Show all technology stocks
+  {
+    pattern: /(?:show|list|all).*technology.*stocks|tech.*stocks/i,
+    response: `Here are the technology stocks in our database, showing 10 results:
+
+**Technology Sector Stocks (Sorted by ESG Score)**
+
+| Rank | Company | Symbol | ESG Score | Region |
+|------|---------|--------|-----------|--------|
+| 1 | Microsoft | MSFT | 85 | US |
+| 2 | Schneider Electric | SU.PA | 84 | EU |
+| 3 | ASML | ASML | 81 | EU |
+| 4 | SAP | SAP | 79 | EU |
+| 5 | Apple | AAPL | 72 | US |
+| 6 | Taiwan Semiconductor | TSM | 71 | Asia |
+| 7 | NVIDIA | NVDA | 68 | US |
+
+Showing 7 companies in the Technology sector. These results are sorted by ESG score in descending order.`,
+  },
+  // Top ESG rated stocks
+  {
+    pattern: /top.*esg|best.*esg|highest.*esg|leading.*esg/i,
+    response: `Here are the top ESG-rated stocks in our database, sorted by overall ESG score:
+
+**Top ESG Leaders**
+
+| Rank | Company | Symbol | ESG Score | Sector |
+|------|---------|--------|-----------|--------|
+| 1 | Ørsted | ORSTED.CO | 91 | Clean Energy |
+| 2 | Vestas Wind | VWS.CO | 88 | Clean Energy |
+| 3 | Microsoft | MSFT | 85 | Technology |
+| 4 | Schneider Electric | SU.PA | 84 | Industrial |
+| 5 | Unilever | ULVR.L | 82 | Consumer |
+
+These companies are leading in ESG practices with scores above 80, representing best-in-class sustainability performance.`,
+  },
+  // Healthcare stocks screening
+  {
+    pattern: /healthcare.*stocks|pharma.*stocks|medical.*stocks/i,
+    response: `Here are healthcare and pharmaceutical stocks with their ESG ratings:
+
+**Healthcare Sector Stocks**
+
+| Company | Symbol | ESG Score | Subsector |
+|---------|--------|-----------|-----------|
+| Novartis | NOVN.SW | 76 | Pharmaceuticals |
+| Johnson & Johnson | JNJ | 74 | Healthcare |
+| Pfizer | PFE | 71 | Pharmaceuticals |
+| Roche | ROG.SW | 73 | Pharmaceuticals |
+
+Novartis leads in the healthcare sector with strong social responsibility scores. All companies shown have ESG scores above 70.`,
+  },
+  // ESG score threshold filtering
+  {
+    pattern: /esg.*(?:score|above|over).*(?:80|85|90)|(?:80|85|90).*esg/i,
+    response: `Finding stocks with high ESG scores above the threshold you specified:
+
+**High ESG Score Stocks (Above 80)**
+
+| Company | Symbol | ESG Score | Sector |
+|---------|--------|-----------|--------|
+| Ørsted | ORSTED.CO | 91 | Clean Energy |
+| Vestas Wind | VWS.CO | 88 | Clean Energy |
+| Microsoft | MSFT | 85 | Technology |
+| Schneider Electric | SU.PA | 84 | Industrial |
+| Unilever | ULVR.L | 82 | Consumer |
+| ASML | ASML | 81 | Technology |
+
+Only showing companies that meet your ESG threshold criteria. These are top-tier ESG performers.`,
+  },
+  // Excellent ESG ratings
+  {
+    pattern: /excellent.*esg|only.*(?:show|companies).*(?:excellent|high|top)/i,
+    response: `Here are companies with excellent ESG ratings (above 85):
+
+**Excellent ESG Ratings Only**
+
+| Company | Symbol | ESG Score | E | S | G |
+|---------|--------|-----------|---|---|---|
+| Ørsted | ORSTED.CO | 91 | 95 | 88 | 90 |
+| Vestas Wind | VWS.CO | 88 | 92 | 85 | 87 |
+| Microsoft | MSFT | 85 | 82 | 88 | 85 |
+
+These companies demonstrate excellent sustainability practices across all Environmental, Social, and Governance categories. No companies with scores below 85 are included.`,
+  },
   // ESG breakdown for specific stocks
   {
     pattern: /esg.*breakdown.*(?:for\s+)?(microsoft|msft)/i,

@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
-import { MessageSquare, PieChart, Search, TrendingUp } from "lucide-react";
+import { MessageSquare, PieChart as PieChartIcon, Search, TrendingUp } from "lucide-react";
+import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
 import { Chat } from "@/components/chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
@@ -37,26 +38,38 @@ interface Holding {
   governanceScore?: number;
   weight?: number;
   change?: number;
+  sector: string;
 }
 
 // Demo portfolio with 11 stocks as per PRD
 const initialHoldings: Holding[] = [
-  { symbol: "AAPL", name: "Apple Inc.", shares: 150, value: 28500, esgScore: 72, weight: 15 },
-  { symbol: "MSFT", name: "Microsoft Corp.", shares: 100, value: 42000, esgScore: 85, weight: 12 },
-  { symbol: "NESN.SW", name: "Nestlé S.A.", shares: 80, value: 8800, esgScore: 78, weight: 10 },
-  { symbol: "ASML", name: "ASML Holding N.V.", shares: 12, value: 9600, esgScore: 81, weight: 10 },
-  { symbol: "VWS.CO", name: "Vestas Wind Systems", shares: 200, value: 5600, esgScore: 88, weight: 8 },
-  { symbol: "NOVN.SW", name: "Novartis AG", shares: 60, value: 5400, esgScore: 76, weight: 8 },
-  { symbol: "SU.PA", name: "Schneider Electric", shares: 35, value: 7350, esgScore: 84, weight: 8 },
-  { symbol: "TSM", name: "Taiwan Semiconductor", shares: 40, value: 6800, esgScore: 71, weight: 8 },
-  { symbol: "ULVR.L", name: "Unilever PLC", shares: 120, value: 5520, esgScore: 82, weight: 7 },
-  { symbol: "ORSTED.CO", name: "Ørsted A/S", shares: 50, value: 4500, esgScore: 91, weight: 7 },
-  { symbol: "FSLR", name: "First Solar Inc.", shares: 30, value: 5250, esgScore: 79, weight: 7 },
+  { symbol: "AAPL", name: "Apple Inc.", shares: 150, value: 28500, esgScore: 72, weight: 15, sector: "Technology" },
+  { symbol: "MSFT", name: "Microsoft Corp.", shares: 100, value: 42000, esgScore: 85, weight: 12, sector: "Technology" },
+  { symbol: "NESN.SW", name: "Nestlé S.A.", shares: 80, value: 8800, esgScore: 78, weight: 10, sector: "Consumer" },
+  { symbol: "ASML", name: "ASML Holding N.V.", shares: 12, value: 9600, esgScore: 81, weight: 10, sector: "Technology" },
+  { symbol: "VWS.CO", name: "Vestas Wind Systems", shares: 200, value: 5600, esgScore: 88, weight: 8, sector: "Energy" },
+  { symbol: "NOVN.SW", name: "Novartis AG", shares: 60, value: 5400, esgScore: 76, weight: 8, sector: "Healthcare" },
+  { symbol: "SU.PA", name: "Schneider Electric", shares: 35, value: 7350, esgScore: 84, weight: 8, sector: "Industrial" },
+  { symbol: "TSM", name: "Taiwan Semiconductor", shares: 40, value: 6800, esgScore: 71, weight: 8, sector: "Technology" },
+  { symbol: "ULVR.L", name: "Unilever PLC", shares: 120, value: 5520, esgScore: 82, weight: 7, sector: "Consumer" },
+  { symbol: "ORSTED.CO", name: "Ørsted A/S", shares: 50, value: 4500, esgScore: 91, weight: 7, sector: "Energy" },
+  { symbol: "FSLR", name: "First Solar Inc.", shares: 30, value: 5250, esgScore: 79, weight: 7, sector: "Energy" },
 ];
 
 // Benchmark data (MSCI ESG Leaders Index mock)
 const benchmarkESGScore = 72;
 const benchmarkDailyChange = 1.2;
+
+// Sector colors for allocation chart
+const SECTOR_COLORS: Record<string, string> = {
+  Technology: "#3b82f6",
+  Consumer: "#10b981",
+  Energy: "#f59e0b",
+  Healthcare: "#ec4899",
+  Industrial: "#8b5cf6",
+  Financial: "#06b6d4",
+  Utilities: "#84cc16",
+};
 
 function getESGColorClass(score: number): string {
   if (score >= 80) return "text-green-600 dark:text-green-400";
@@ -158,6 +171,19 @@ export default function Home() {
     ? Math.round(holdings.reduce((sum, h) => sum + (h.governanceScore || 0), 0) / holdings.filter(h => h.governanceScore).length)
     : 0;
 
+  // Calculate sector allocation for pie chart
+  const sectorAllocation = useMemo(() => {
+    const sectorTotals: Record<string, number> = {};
+    for (const holding of holdings) {
+      sectorTotals[holding.sector] = (sectorTotals[holding.sector] || 0) + holding.value;
+    }
+    return Object.entries(sectorTotals).map(([name, value]) => ({
+      name,
+      value,
+      percentage: ((value / totalValue) * 100).toFixed(1),
+    }));
+  }, [holdings, totalValue]);
+
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
       <header className="flex items-center justify-between border-b px-4 py-3">
@@ -173,7 +199,7 @@ export default function Home() {
             <span className="sm:hidden">Chat</span>
           </TabsTrigger>
           <TabsTrigger value="portfolio" className="gap-1.5">
-            <PieChart className="h-4 w-4" />
+            <PieChartIcon className="h-4 w-4" />
             <span className="hidden sm:inline">Portfolio Dashboard</span>
             <span className="sm:hidden">Portfolio</span>
           </TabsTrigger>
@@ -197,7 +223,7 @@ export default function Home() {
 
         <TabsContent value="portfolio" className="flex-1 overflow-auto p-4">
           <div data-testid="portfolio-content" className="space-y-4">
-            <Card>
+            <Card data-testid="portfolio-summary">
               <CardHeader>
                 <CardTitle>Portfolio Summary</CardTitle>
               </CardHeader>
@@ -235,6 +261,40 @@ export default function Home() {
                       {(avgESGScore - benchmarkESGScore) >= 0 ? "+" : ""}{avgESGScore - benchmarkESGScore} points
                     </span>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Allocation Chart Card */}
+            <Card data-testid="allocation-chart">
+              <CardHeader>
+                <CardTitle>Sector Allocation</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={sectorAllocation}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={60}
+                        outerRadius={80}
+                        paddingAngle={2}
+                        dataKey="value"
+                        nameKey="name"
+                        label={({ name, percentage }) => `${name} ${percentage}%`}
+                      >
+                        {sectorAllocation.map((entry) => (
+                          <Cell key={entry.name} fill={SECTOR_COLORS[entry.name] || "#6b7280"} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value: number) => [`CHF ${value.toLocaleString("en-CH")}`, "Value"]}
+                      />
+                      <Legend />
+                    </PieChart>
+                  </ResponsiveContainer>
                 </div>
               </CardContent>
             </Card>
@@ -290,6 +350,7 @@ export default function Home() {
                       <TableHead>Name</TableHead>
                       <TableHead className="text-right">Shares</TableHead>
                       <TableHead className="text-right">Value</TableHead>
+                      <TableHead className="text-right">Weight %</TableHead>
                       <TableHead className="text-right">ESG</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -301,6 +362,9 @@ export default function Home() {
                         <TableCell className="text-right">{holding.shares}</TableCell>
                         <TableCell className="text-right">
                           CHF {holding.value.toLocaleString("en-CH")}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {((holding.value / totalValue) * 100).toFixed(1)}%
                         </TableCell>
                         <TableCell className="text-right">
                           <span

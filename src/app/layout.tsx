@@ -23,8 +23,19 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // reCAPTCHA site key (use test key for demo, replace with real key in production)
+  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+
   return (
     <html lang="en" suppressHydrationWarning>
+      <head>
+        {/* Google reCAPTCHA v3 */}
+        <script
+          src={`https://www.google.com/recaptcha/api.js?render=${recaptchaSiteKey}`}
+          async
+          defer
+        />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >

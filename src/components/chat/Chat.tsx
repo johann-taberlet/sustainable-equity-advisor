@@ -87,7 +87,7 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
             />
           ))}
           {isLoading && (
-            <div className="flex justify-start">
+            <div className="flex justify-start" data-testid="loading" aria-busy="true">
               <div className="rounded-lg bg-muted px-4 py-2">
                 <span className="animate-pulse">Thinking...</span>
               </div>

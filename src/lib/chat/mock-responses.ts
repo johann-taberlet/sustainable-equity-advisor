@@ -45,6 +45,12 @@ const mockResponses: MockResponse[] = [
     pattern: /hello|hi|hey/i,
     response: `Hello! I'm your AI ESG investment advisor. I can help you manage your sustainable portfolio, analyze ESG scores, and make informed investment decisions. What would you like to know about your portfolio today?`,
   },
+  {
+    pattern: /what.*(stock|share).*buy|buy.*(stock|share)/i,
+    response: `I understand you're looking for investment opportunities. When considering stocks, it's important to evaluate factors such as ESG performance, financial fundamentals, and alignment with your investment goals.
+
+Please note: This is not financial advice. Past performance does not guarantee future results. I recommend consulting with a qualified financial advisor before making any investment decisions. Consider your own risk tolerance and conduct due diligence on any investment.`,
+  },
 ];
 
 export function getMockResponse(userMessage: string): string {

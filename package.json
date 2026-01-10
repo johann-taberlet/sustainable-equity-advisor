@@ -7,7 +7,18 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check",
-    "format": "biome format --write"
+    "format": "biome format --write",
+    "test": "playwright test",
+    "test:epic1": "playwright test e2e/epic-1-infrastructure.spec.ts",
+    "test:epic2": "playwright test e2e/epic-2-a2ui.spec.ts",
+    "test:epic3": "playwright test e2e/epic-3-chat.spec.ts",
+    "test:epic4": "playwright test e2e/epic-4-portfolio.spec.ts",
+    "test:epic5": "playwright test e2e/epic-5-esg.spec.ts",
+    "test:epic7": "playwright test e2e/epic-7-screening.spec.ts",
+    "test:epic9": "playwright test e2e/epic-9-security.spec.ts",
+    "test:epic10": "playwright test e2e/epic-10-dashboard.spec.ts",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -59,6 +70,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.2.0",
+    "@playwright/test": "^1.57.0",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/react": "^19",

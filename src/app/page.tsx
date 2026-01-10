@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { MessageSquare, PieChart, Search, TrendingUp } from "lucide-react";
@@ -14,6 +14,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
+
+interface ESGData {
+  symbol: string;
+  companyName: string;
+  esgScore: number;
+  environmentalScore: number;
+  socialScore: number;
+  governanceScore: number;
+  lastUpdated: string;
+}
 
 interface Holding {
   symbol: string;
@@ -21,6 +32,9 @@ interface Holding {
   shares: number;
   value: number;
   esgScore: number;
+  environmentalScore?: number;
+  socialScore?: number;
+  governanceScore?: number;
 }
 
 const initialHoldings: Holding[] = [
@@ -28,8 +42,57 @@ const initialHoldings: Holding[] = [
   { symbol: "NVDA", name: "NVIDIA Corp.", shares: 50, value: 62500, esgScore: 68 },
 ];
 
+function getESGColorClass(score: number): string {
+  if (score >= 80) return "text-green-600 dark:text-green-400";
+  if (score >= 60) return "text-yellow-600 dark:text-yellow-400";
+  if (score >= 40) return "text-orange-600 dark:text-orange-400";
+  return "text-red-600 dark:text-red-400";
+}
+
+function getESGBgClass(score: number): string {
+  if (score >= 80) return "bg-green-500";
+  if (score >= 60) return "bg-yellow-500";
+  if (score >= 40) return "bg-orange-500";
+  return "bg-red-500";
+}
+
 export default function Home() {
   const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
+  const [esgDataLoaded, setEsgDataLoaded] = useState(false);
+
+  // Fetch ESG data from API on mount and when holdings change
+  useEffect(() => {
+    const fetchESGData = async () => {
+      const symbols = holdings.map((h) => h.symbol).join(",");
+      try {
+        const response = await fetch(`/api/esg?symbols=${encodeURIComponent(symbols)}`);
+        if (response.ok) {
+          const result = await response.json();
+          setHoldings((prev) =>
+            prev.map((holding) => {
+              const esgData = result.data[holding.symbol] as ESGData | null;
+              if (esgData) {
+                return {
+                  ...holding,
+                  esgScore: esgData.esgScore,
+                  environmentalScore: esgData.environmentalScore,
+                  socialScore: esgData.socialScore,
+                  governanceScore: esgData.governanceScore,
+                };
+              }
+              return holding;
+            })
+          );
+          setEsgDataLoaded(true);
+        }
+      } catch (error) {
+        console.error("Error fetching ESG data:", error);
+        setEsgDataLoaded(true); // Mark as loaded even on error to show current data
+      }
+    };
+
+    fetchESGData();
+  }, []);
 
   const handlePortfolioUpdate = useCallback(() => {
     // Add AAPL to portfolio when updated via chat
@@ -45,6 +108,20 @@ export default function Home() {
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
+
+  // Calculate aggregate ESG scores
+  const avgESGScore = holdings.length > 0
+    ? Math.round(holdings.reduce((sum, h) => sum + h.esgScore, 0) / holdings.length)
+    : 0;
+  const avgEnvironmental = holdings.length > 0 && holdings.some(h => h.environmentalScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.environmentalScore || 0), 0) / holdings.filter(h => h.environmentalScore).length)
+    : 0;
+  const avgSocial = holdings.length > 0 && holdings.some(h => h.socialScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.socialScore || 0), 0) / holdings.filter(h => h.socialScore).length)
+    : 0;
+  const avgGovernance = holdings.length > 0 && holdings.some(h => h.governanceScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.governanceScore || 0), 0) / holdings.filter(h => h.governanceScore).length)
+    : 0;
 
   return (
     <div className="flex min-h-screen flex-col bg-background text-foreground">
@@ -96,6 +173,45 @@ export default function Home() {
               </CardContent>
             </Card>
 
+            {/* ESG Breakdown Card */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Portfolio ESG Score</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4" data-testid="esg-breakdown">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold" data-testid="esg-score" data-esg-score={avgESGScore}>
+                      <span className={getESGColorClass(avgESGScore)}>{avgESGScore}</span>/100
+                    </span>
+                    <div data-testid="esg-gauge" className="w-32">
+                      <Progress value={avgESGScore} className={getESGBgClass(avgESGScore)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground" data-label="Environmental">Environmental</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgEnvironmental)}`} data-testid="e-score">
+                        {avgEnvironmental || "N/A"}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground" data-label="Social">Social</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgSocial)}`} data-testid="s-score">
+                        {avgSocial || "N/A"}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground" data-label="Governance">Governance</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgGovernance)}`} data-testid="g-score">
+                        {avgGovernance || "N/A"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle>Holdings</CardTitle>
@@ -120,7 +236,15 @@ export default function Home() {
                         <TableCell className="text-right">
                           CHF {holding.value.toLocaleString("en-CH")}
                         </TableCell>
-                        <TableCell className="text-right">{holding.esgScore}</TableCell>
+                        <TableCell className="text-right">
+                          <span
+                            data-testid="esg-score"
+                            data-esg-score={holding.esgScore}
+                            className={`font-medium ${getESGColorClass(holding.esgScore)}`}
+                          >
+                            {holding.esgScore}
+                          </span>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

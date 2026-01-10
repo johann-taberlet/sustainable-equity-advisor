@@ -9,6 +9,27 @@ interface MockResponse {
 }
 
 const mockResponses: MockResponse[] = [
+  // ESG breakdown for specific stocks
+  {
+    pattern: /esg.*breakdown.*(?:for\s+)?(microsoft|msft)/i,
+    response: `Here's the ESG breakdown for Microsoft (MSFT):
+
+**Microsoft Corporation ESG Analysis**
+
+| Category | Score |
+|----------|-------|
+| **Overall ESG Score** | 85/100 |
+| **Environmental** | 82/100 |
+| **Social** | 88/100 |
+| **Governance** | 85/100 |
+
+Microsoft demonstrates strong performance across all ESG categories, with particularly high scores in Social responsibility due to their employee programs and community initiatives.`,
+  },
+  // Unknown/fake stock symbols
+  {
+    pattern: /esg.*(?:score|breakdown).*(?:for\s+)?(?:xyzfake|unknown|invalid)/i,
+    response: `I couldn't find ESG data for that symbol. The requested stock symbol is not available in our database. ESG data is not available or N/A for this security. Please check the symbol and try again, or search for a different stock.`,
+  },
   {
     pattern: /esg\s*score/i,
     response: `Here's your portfolio ESG score:

@@ -106,7 +106,7 @@ export function Header({
               isAIPanelOpen && "bg-primary text-primary-foreground",
             )}
           >
-            <ChatbotIcon className="h-5 w-5" />
+            <ChatbotIcon className="h-6 w-6" />
             {!isAIPanelOpen && (
               <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-green-500" />
             )}

@@ -3,13 +3,21 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
+import { parseA2UIMessage, type ParsedAction } from "@/lib/a2ui/parser";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 
 const MAX_MESSAGES_PER_SESSION = 20;
 const QUOTA_STORAGE_KEY = "chat_quota";
 
+export interface PortfolioAction {
+  type: "add_holding" | "remove_holding" | "update_holding";
+  symbol: string;
+  shares?: number;
+  name?: string;
+}
+
 interface ChatProps {
-  onPortfolioUpdate?: (data?: { symbol?: string; action?: string }) => void;
+  onPortfolioUpdate?: (action: PortfolioAction) => void;
 }
 
 interface ConversationMessage {
@@ -114,13 +122,41 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
       setMessagesRemaining(newQuota);
       saveQuotaToStorage(newQuota);
 
-      // Check if the message updates portfolio
-      if (/add.*(?:googl|google|alphabet)/i.test(content)) {
-        onPortfolioUpdate?.({ symbol: "GOOGL", action: "add-googl" });
-      } else if (/remove.*(?:aapl|apple)/i.test(content)) {
-        onPortfolioUpdate?.({ action: "remove-aapl" });
-      } else if (/add.*shares|portfolio/i.test(content)) {
-        onPortfolioUpdate?.({});
+      // Parse AI response to extract actions
+      const parsed = parseA2UIMessage(data.message);
+
+      // Execute any portfolio actions from the AI response
+      if (parsed.actions) {
+        for (const action of parsed.actions) {
+          if (action.type === "add_holding") {
+            const payload = action.payload as { symbol?: string; shares?: number; name?: string };
+            if (payload.symbol) {
+              onPortfolioUpdate?.({
+                type: "add_holding",
+                symbol: payload.symbol,
+                shares: payload.shares || 1,
+                name: payload.name,
+              });
+            }
+          } else if (action.type === "remove_holding") {
+            const payload = action.payload as { symbol?: string };
+            if (payload.symbol) {
+              onPortfolioUpdate?.({
+                type: "remove_holding",
+                symbol: payload.symbol,
+              });
+            }
+          } else if (action.type === "update_holding") {
+            const payload = action.payload as { symbol?: string; shares?: number };
+            if (payload.symbol) {
+              onPortfolioUpdate?.({
+                type: "update_holding",
+                symbol: payload.symbol,
+                shares: payload.shares,
+              });
+            }
+          }
+        }
       }
     } catch (error) {
       console.error("Chat error:", error);
@@ -136,7 +172,7 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
     } finally {
       setIsLoading(false);
     }
-  }, [conversationHistory, onPortfolioUpdate]);
+  }, [conversationHistory, messagesRemaining, onPortfolioUpdate]);
 
   const handleAction = useCallback((action: string) => {
     // Handle A2UI button actions by sending a follow-up message

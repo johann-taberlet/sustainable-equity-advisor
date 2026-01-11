@@ -1,9 +1,14 @@
 /**
  * A2UI Message Parser
- * Parses LLM responses to extract A2UI components
+ * Parses LLM responses to extract A2UI components and actions
  */
 
 import type { A2UIComponent, A2UIMessage, A2UISurfaceUpdate } from "./types";
+
+export interface ParsedAction {
+  type: string;
+  payload: Record<string, unknown>;
+}
 
 /**
  * Extract balanced JSON objects from a string
@@ -43,8 +48,12 @@ function extractJsonObjects(content: string): { json: string; start: number; end
             depth--;
             if (depth === 0) {
               const jsonStr = content.slice(start, j + 1);
-              // Check if it's a surfaceUpdate or component
-              if (jsonStr.includes('"surfaceUpdate"') || jsonStr.includes('"component"')) {
+              // Check if it's a surfaceUpdate, component, or action
+              if (
+                jsonStr.includes('"surfaceUpdate"') ||
+                jsonStr.includes('"component"') ||
+                jsonStr.includes('"action"')
+              ) {
                 results.push({ json: jsonStr, start, end: j + 1 });
               }
               i = j;
@@ -61,16 +70,17 @@ function extractJsonObjects(content: string): { json: string; start: number; end
 }
 
 /**
- * Parse a message to extract A2UI components
+ * Parse a message to extract A2UI components and actions
  */
-export function parseA2UIMessage(content: string): A2UIMessage {
+export function parseA2UIMessage(content: string): A2UIMessage & { actions?: ParsedAction[] } {
   const components: A2UIComponent[] = [];
+  const actions: ParsedAction[] = [];
   let textContent = content;
 
   // Extract JSON objects from the content
   const jsonObjects = extractJsonObjects(content);
 
-  for (const { json, start, end } of jsonObjects) {
+  for (const { json } of jsonObjects) {
     try {
       const parsed = JSON.parse(json);
 
@@ -79,7 +89,12 @@ export function parseA2UIMessage(content: string): A2UIMessage {
           component: parsed.surfaceUpdate.component,
           props: parsed.surfaceUpdate.props,
         });
-        // Mark for removal (we'll do it in order)
+        textContent = textContent.replace(json, "");
+      } else if (isAction(parsed)) {
+        actions.push({
+          type: parsed.action.type,
+          payload: parsed.action.payload || {},
+        });
         textContent = textContent.replace(json, "");
       } else if (isA2UIComponent(parsed)) {
         components.push(parsed);
@@ -96,6 +111,7 @@ export function parseA2UIMessage(content: string): A2UIMessage {
   return {
     text: textContent || undefined,
     components: components.length > 0 ? components : undefined,
+    actions: actions.length > 0 ? actions : undefined,
   };
 }
 
@@ -115,6 +131,23 @@ function isA2UIComponent(obj: unknown): obj is A2UIComponent {
     obj !== null &&
     "component" in obj &&
     typeof (obj as A2UIComponent).component === "string"
+  );
+}
+
+interface ActionWrapper {
+  action: {
+    type: string;
+    payload?: Record<string, unknown>;
+  };
+}
+
+function isAction(obj: unknown): obj is ActionWrapper {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "action" in obj &&
+    typeof (obj as ActionWrapper).action === "object" &&
+    typeof (obj as ActionWrapper).action.type === "string"
   );
 }
 

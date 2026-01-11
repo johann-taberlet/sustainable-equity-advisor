@@ -7,7 +7,7 @@ import { Header } from "@/components/layout/Header";
 import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
 import { FloatingAIButton } from "@/components/ai/FloatingAIButton";
 import { AIPanel } from "@/components/ai/AIPanel";
-import { Chat } from "@/components/chat";
+import { Chat, type PortfolioAction } from "@/components/chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
@@ -130,28 +130,55 @@ export default function Home() {
     fetchESGData();
   }, []);
 
-  const handlePortfolioUpdate = useCallback((data?: { symbol?: string; action?: string }) => {
-    if (data?.symbol === "GOOGL" || data?.action === "add-googl") {
+  const handlePortfolioUpdate = useCallback((action: PortfolioAction) => {
+    const { type, symbol, shares = 1, name } = action;
+
+    if (type === "add_holding") {
       setHoldings((prev) => {
-        if (prev.some((h) => h.symbol === "GOOGL")) {
-          return prev;
+        const existingIndex = prev.findIndex((h) => h.symbol === symbol);
+        if (existingIndex >= 0) {
+          // Increment shares for existing holding
+          const updated = [...prev];
+          const existing = updated[existingIndex];
+          const pricePerShare = existing.value / existing.shares;
+          updated[existingIndex] = {
+            ...existing,
+            shares: existing.shares + shares,
+            value: (existing.shares + shares) * pricePerShare,
+          };
+          return updated;
         }
+        // Add new holding with estimated price
+        const estimatedPricePerShare = symbol === "GOOGL" ? 175 : 100;
         return [
           ...prev,
-          { symbol: "GOOGL", name: "Alphabet Inc.", shares: 5, value: 8750, esgScore: 74, weight: 5, sector: "Technology" },
+          {
+            symbol,
+            name: name || symbol,
+            shares,
+            value: shares * estimatedPricePerShare,
+            esgScore: 75,
+            sector: "Technology",
+          },
         ];
       });
-    } else if (data?.action === "remove-aapl") {
-      setHoldings((prev) => prev.filter((h) => h.symbol !== "AAPL"));
-    } else {
+    } else if (type === "remove_holding") {
+      setHoldings((prev) => prev.filter((h) => h.symbol !== symbol));
+    } else if (type === "update_holding") {
       setHoldings((prev) => {
-        if (prev.some((h) => h.symbol === "AAPL")) {
-          return prev;
+        const existingIndex = prev.findIndex((h) => h.symbol === symbol);
+        if (existingIndex >= 0 && shares !== undefined) {
+          const updated = [...prev];
+          const existing = updated[existingIndex];
+          const pricePerShare = existing.value / existing.shares;
+          updated[existingIndex] = {
+            ...existing,
+            shares,
+            value: shares * pricePerShare,
+          };
+          return updated;
         }
-        return [
-          ...prev,
-          { symbol: "AAPL", name: "Apple Inc.", shares: 10, value: 1900, esgScore: 72, sector: "Technology" },
-        ];
+        return prev;
       });
     }
   }, []);

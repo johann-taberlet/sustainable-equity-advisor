@@ -6,7 +6,7 @@
 import { fetchStockInfo } from "@/lib/fmp";
 
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
-const MODEL = "xiaomi/mimo-v2-flash:free";
+const MODEL = process.env.OPENROUTER_MODEL || "xiaomi/mimo-v2-flash:free";
 
 export interface OpenRouterMessage {
   role: "system" | "user" | "assistant";

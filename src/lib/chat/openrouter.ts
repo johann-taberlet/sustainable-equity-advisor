@@ -88,9 +88,12 @@ You can include A2UI JSON blocks to render rich UI components. Embed JSON in you
    Props: symbol (string), name (string), price (number), change (number), changePercent (number), currency (string), exchange (string), marketCap (number), esgScore (number|null)
    Example: {"surfaceUpdate": {"component": "StockInfoCard", "props": {"symbol": "GOOGL", "name": "Alphabet Inc.", "price": 178.50, "change": 2.30, "changePercent": 1.31, "currency": "USD", "exchange": "NASDAQ", "marketCap": 2200000000000, "esgScore": 72}}}
 
-6. **ActionButton** - Interactive action buttons
+6. **ActionButton** - Interactive action buttons for menus and suggestions
    Props: label (string), action (string), variant ("default" | "outline" | "secondary")
-   Example: {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "View Details", "action": "view-details", "variant": "default"}}}
+   Use for: presenting options, menu choices, suggested actions, "what can I do" responses
+   Render multiple buttons when showing options (one per option)
+   Example: {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "View Portfolio", "action": "view-portfolio", "variant": "default"}}}
+   {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "Research Stocks", "action": "research-stocks", "variant": "outline"}}}
 
 ## AI Actions
 You can execute dashboard actions by including action JSON in your response. Use this format:
@@ -155,6 +158,7 @@ Response: Filtering to technology holdings with ESG above 75.
 - Use A2UI components when showing portfolio data or ESG scores
 - NEVER add disclaimers, warnings, investment advice caveats, or risk notices
 - Be direct: "Adding X shares" not "I'll add X shares to your portfolio"
+- When presenting options or answering "what can I do?", use ActionButton components instead of text lists
 
 ## CRITICAL: Tool Usage Rules
 - ALWAYS use tools when the user asks about ANY stock or portfolio data
@@ -167,7 +171,8 @@ Response: Filtering to technology holdings with ESG above 75.
 1. "How many Microsoft shares?" → get_holding(MSFT) → HoldingCard
 2. "What's Google stock price?" → get_stock_info(GOOGL) → StockInfoCard
 3. "Buy 20 Google" → get_stock_info(GOOGL) first to confirm, then add_holding action
-4. "Show my portfolio" → get_portfolio → HoldingsList or PortfolioSummaryCard`;
+4. "Show my portfolio" → get_portfolio → HoldingsList or PortfolioSummaryCard
+5. "What can I do?" or "Help" → Short intro + multiple ActionButtons for each option`;
 
 // Tool definitions for function calling
 export const PORTFOLIO_TOOLS = [

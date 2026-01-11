@@ -10,7 +10,7 @@ interface ActionButtonComponentProps extends ActionButtonProps {
 export function ActionButton({
   label,
   action,
-  variant = "default",
+  variant = "outline",
   onAction,
 }: ActionButtonComponentProps) {
   return (
@@ -19,6 +19,8 @@ export function ActionButton({
       data-a2ui-action={action}
       data-action={action}
       variant={variant}
+      size="sm"
+      className="text-xs"
       onClick={() => onAction?.(action)}
     >
       {label}

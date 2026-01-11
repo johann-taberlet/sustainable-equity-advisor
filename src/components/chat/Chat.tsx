@@ -288,17 +288,48 @@ export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProp
     // Handle A2UI button actions by sending a follow-up message
     let actionMessage = "";
     switch (action) {
-      case "rebalance":
-        actionMessage = "Rebalance my portfolio";
+      case "view-portfolio":
+        actionMessage = "Show me my portfolio";
         break;
-      case "esg-report":
-        actionMessage = "Show me my ESG report";
+      case "view-holdings":
+        actionMessage = "List all my holdings";
         break;
       case "add-holding":
         actionMessage = "I want to add a new holding";
         break;
+      case "remove-holding":
+        actionMessage = "I want to remove a holding";
+        break;
+      case "research-stocks":
+        actionMessage = "I want to research a stock";
+        break;
+      case "esg-report":
+      case "view-esg":
+        actionMessage = "Show me my ESG breakdown";
+        break;
+      case "filter-holdings":
+        actionMessage = "Filter my holdings by ESG score";
+        break;
+      case "set-alert":
+        actionMessage = "I want to set up a price alert";
+        break;
+      case "compare-holdings":
+        actionMessage = "Compare my holdings";
+        break;
+      case "rebalance":
+        actionMessage = "Rebalance my portfolio";
+        break;
       default:
-        actionMessage = `Perform action: ${action}`;
+        // Handle dynamic actions like "research-AAPL"
+        if (action.startsWith("research-")) {
+          const symbol = action.replace("research-", "");
+          actionMessage = `Tell me about ${symbol} stock`;
+        } else if (action.startsWith("add-")) {
+          const symbol = action.replace("add-", "");
+          actionMessage = `Add ${symbol} to my portfolio`;
+        } else {
+          actionMessage = `${action.replace(/-/g, " ")}`;
+        }
     }
     handleSend(actionMessage);
   }, [handleSend]);

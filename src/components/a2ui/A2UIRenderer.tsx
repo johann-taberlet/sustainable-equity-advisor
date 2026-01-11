@@ -28,9 +28,41 @@ interface A2UIRendererProps {
 }
 
 export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
+  // Group consecutive ActionButtons together
+  const groupedComponents: Array<{ type: "single" | "button-group"; items: Array<{ component: typeof components[0]; index: number }> }> = [];
+
+  for (let i = 0; i < components.length; i++) {
+    const component = components[i];
+    if (component.component === "ActionButton") {
+      // Start or continue a button group
+      const lastGroup = groupedComponents[groupedComponents.length - 1];
+      if (lastGroup?.type === "button-group") {
+        lastGroup.items.push({ component, index: i });
+      } else {
+        groupedComponents.push({ type: "button-group", items: [{ component, index: i }] });
+      }
+    } else {
+      groupedComponents.push({ type: "single", items: [{ component, index: i }] });
+    }
+  }
+
   return (
-    <div className="space-y-4" data-testid="a2ui-component">
-      {components.map((component, index) => {
+    <div className="space-y-3" data-testid="a2ui-component">
+      {groupedComponents.map((group, groupIndex) => {
+        if (group.type === "button-group") {
+          return (
+            <div key={`group-${groupIndex}`} className="flex flex-wrap gap-2">
+              {group.items.map(({ component, index }) => {
+                const Component = componentRegistry[component.component];
+                return Component ? (
+                  <Component key={index} {...(component.props || {})} onAction={onAction} />
+                ) : null;
+              })}
+            </div>
+          );
+        }
+
+        const { component, index } = group.items[0];
         const Component = componentRegistry[component.component];
 
         if (!Component) {

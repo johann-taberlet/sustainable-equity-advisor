@@ -130,14 +130,33 @@ export default function Home() {
     fetchESGData();
   }, []);
 
-  const handlePortfolioUpdate = useCallback((action: PortfolioAction) => {
+  // Fetch real stock price from API
+  const fetchStockPrice = useCallback(async (symbol: string): Promise<{ price: number; name: string } | null> => {
+    try {
+      const response = await fetch(`/api/stock?symbol=${encodeURIComponent(symbol)}`);
+      if (!response.ok) return null;
+      const data = await response.json();
+      // Convert USD to CHF (approximate rate)
+      const usdToChf = 0.88;
+      return {
+        price: data.price * usdToChf,
+        name: data.name || symbol,
+      };
+    } catch (error) {
+      console.error("Error fetching stock price:", error);
+      return null;
+    }
+  }, []);
+
+  const handlePortfolioUpdate = useCallback(async (action: PortfolioAction) => {
     const { type, symbol, shares = 1, name } = action;
 
     if (type === "add_holding") {
-      setHoldings((prev) => {
-        const existingIndex = prev.findIndex((h) => h.symbol === symbol);
-        if (existingIndex >= 0) {
-          // Increment shares for existing holding
+      // Check if it's an existing holding first (synchronous update)
+      const existingHolding = holdings.find((h) => h.symbol === symbol);
+      if (existingHolding) {
+        setHoldings((prev) => {
+          const existingIndex = prev.findIndex((h) => h.symbol === symbol);
           const updated = [...prev];
           const existing = updated[existingIndex];
           const pricePerShare = existing.value / existing.shares;
@@ -147,21 +166,26 @@ export default function Home() {
             value: (existing.shares + shares) * pricePerShare,
           };
           return updated;
-        }
-        // Add new holding with estimated price
-        const estimatedPricePerShare = symbol === "GOOGL" ? 175 : 100;
-        return [
-          ...prev,
-          {
-            symbol,
-            name: name || symbol,
-            shares,
-            value: shares * estimatedPricePerShare,
-            esgScore: 75,
-            sector: "Technology",
-          },
-        ];
-      });
+        });
+        return;
+      }
+
+      // For new holdings, fetch real price from API
+      const stockData = await fetchStockPrice(symbol);
+      const pricePerShare = stockData?.price || 100; // Fallback to 100 CHF
+      const stockName = stockData?.name || name || symbol;
+
+      setHoldings((prev) => [
+        ...prev,
+        {
+          symbol,
+          name: stockName,
+          shares,
+          value: shares * pricePerShare,
+          esgScore: 75,
+          sector: "Technology",
+        },
+      ]);
     } else if (type === "remove_holding") {
       setHoldings((prev) => prev.filter((h) => h.symbol !== symbol));
     } else if (type === "update_holding") {
@@ -181,7 +205,7 @@ export default function Home() {
         return prev;
       });
     }
-  }, []);
+  }, [holdings, fetchStockPrice]);
 
   const getHoldingShares = useCallback((symbol: string): number => {
     const holding = holdings.find((h) => h.symbol === symbol);

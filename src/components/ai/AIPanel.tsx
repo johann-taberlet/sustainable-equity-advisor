@@ -38,11 +38,11 @@ export function AIPanel({ isOpen, onClose, children }: AIPanelProps) {
 
   return (
     <>
-      {/* Backdrop overlay */}
+      {/* Backdrop - transparent to keep dashboard visible */}
       <div
         data-testid="ai-panel-backdrop"
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-200",
+          "fixed inset-0 z-40 transition-opacity duration-200",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0",
         )}
         onClick={onClose}

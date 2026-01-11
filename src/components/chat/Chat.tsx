@@ -8,6 +8,22 @@ import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 
 const MAX_MESSAGES_PER_SESSION = 20;
 const QUOTA_STORAGE_KEY = "chat_quota";
+const IS_DEV = process.env.NODE_ENV === "development";
+
+// Generate fallback message text when AI only returns action JSON
+function generateActionText(action: ParsedAction): string {
+  const payload = action.payload as Record<string, unknown>;
+  switch (action.type) {
+    case "add_holding":
+      return `Adding ${payload.shares || 1} shares of ${payload.symbol} to your portfolio.`;
+    case "remove_holding":
+      return `Removing ${payload.symbol} from your portfolio.`;
+    case "update_holding":
+      return `Updating ${payload.symbol} to ${payload.shares} shares.`;
+    default:
+      return `Executing ${action.type}...`;
+  }
+}
 
 export interface PortfolioAction {
   type: "add_holding" | "remove_holding" | "update_holding";
@@ -120,11 +136,18 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
       const parsed = parseA2UIMessage(data.message);
       const hasActions = parsed.actions && parsed.actions.length > 0;
 
+      // Generate fallback text if AI only returned JSON without text
+      let displayContent = data.message;
+      if (hasActions && !parsed.text?.trim()) {
+        const actionTexts = parsed.actions!.map(generateActionText);
+        displayContent = actionTexts.join("\n") + "\n" + data.message;
+      }
+
       const messageId = crypto.randomUUID();
       const assistantMessage: ExtendedChatMessage = {
         id: messageId,
         role: "assistant",
-        content: data.message,
+        content: displayContent,
         timestamp: new Date(),
         actionPending: hasActions,
       };
@@ -139,10 +162,12 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
         { role: "assistant", content: data.message },
       ]);
 
-      // Decrement quota
-      const newQuota = messagesRemaining - 1;
-      setMessagesRemaining(newQuota);
-      saveQuotaToStorage(newQuota);
+      // Decrement quota (skip in dev mode)
+      if (!IS_DEV) {
+        const newQuota = messagesRemaining - 1;
+        setMessagesRemaining(newQuota);
+        saveQuotaToStorage(newQuota);
+      }
 
       // Execute any portfolio actions from the AI response
       if (parsed.actions && parsed.actions.length > 0) {
@@ -249,25 +274,27 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
 
   return (
     <div className="flex h-full flex-col">
-      {/* Quota Indicator */}
-      <div className="flex items-center justify-end gap-2 px-4 py-2 border-b bg-muted/50">
-        <span
-          data-testid="quota"
-          className={`text-sm ${isLowQuota ? "text-orange-600 dark:text-orange-400 font-medium" : "text-muted-foreground"}`}
-          aria-label={`${messagesRemaining} messages remaining`}
-        >
-          {messagesRemaining} messages remaining
-        </span>
-        {isLowQuota && (
+      {/* Quota Indicator - hidden in dev mode */}
+      {!IS_DEV && (
+        <div className="flex items-center justify-end gap-2 px-4 py-2 border-b bg-muted/50">
           <span
-            data-testid="quota-warning"
-            className="text-xs text-orange-600 dark:text-orange-400"
-            aria-label="Low quota warning"
+            data-testid="quota"
+            className={`text-sm ${isLowQuota ? "text-orange-600 dark:text-orange-400 font-medium" : "text-muted-foreground"}`}
+            aria-label={`${messagesRemaining} messages remaining`}
           >
-            (Low)
+            {messagesRemaining} messages remaining
           </span>
-        )}
-      </div>
+          {isLowQuota && (
+            <span
+              data-testid="quota-warning"
+              className="text-xs text-orange-600 dark:text-orange-400"
+              aria-label="Low quota warning"
+            >
+              (Low)
+            </span>
+          )}
+        </div>
+      )}
       <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((message) => (

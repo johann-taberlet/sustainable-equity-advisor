@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, MessageSquare, User } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,26 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+
+function ChatbotIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+    >
+      <rect x="4" y="6" width="16" height="14" rx="4" stroke="currentColor" strokeWidth="2"/>
+      <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
+      <circle cx="15" cy="11" r="1.5" fill="currentColor"/>
+      <path d="M12 6V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <circle cx="12" cy="2" r="1" fill="currentColor"/>
+      <path d="M9 16H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+    </svg>
+  );
+}
 
 interface Portfolio {
   id: string;
@@ -69,7 +89,9 @@ export function Header({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
-        {/* AI Chat toggle */}
+        <ThemeToggle />
+
+        {/* AI Chat toggle with chatbot icon */}
         {onAIChatToggle && (
           <Button
             variant={isAIPanelOpen ? "default" : "ghost"}
@@ -84,33 +106,12 @@ export function Header({
               isAIPanelOpen && "bg-primary text-primary-foreground",
             )}
           >
-            <MessageSquare className="h-5 w-5" />
+            <ChatbotIcon className="h-5 w-5" />
             {!isAIPanelOpen && (
               <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-green-500" />
             )}
           </Button>
         )}
-
-        <ThemeToggle />
-
-        {/* User menu placeholder */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon"
-              data-testid="user-menu"
-              aria-label="User menu"
-            >
-              <User className="h-5 w-5" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            <DropdownMenuItem disabled>Profile</DropdownMenuItem>
-            <DropdownMenuItem disabled>Settings</DropdownMenuItem>
-            <DropdownMenuItem disabled>Sign out</DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
       </div>
     </div>
   );

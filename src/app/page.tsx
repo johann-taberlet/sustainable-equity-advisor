@@ -5,6 +5,8 @@ import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recha
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Header } from "@/components/layout/Header";
 import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
+import { FloatingAIButton } from "@/components/ai/FloatingAIButton";
+import { AIPanel } from "@/components/ai/AIPanel";
 import { Chat } from "@/components/chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -94,6 +96,7 @@ export default function Home() {
   const [activeSection, setActiveSection] = useState<NavigationSection>("dashboard");
   const [selectedPortfolioId, setSelectedPortfolioId] = useState(portfolios[0].id);
   const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
+  const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   // Fetch ESG data from API on mount
   useEffect(() => {
@@ -500,10 +503,18 @@ export default function Home() {
     >
       {renderContent()}
 
-      {/* Floating Chat - preserved for AI interaction */}
-      <div data-testid="chat-content" className="hidden">
-        <Chat onPortfolioUpdate={handlePortfolioUpdate} />
-      </div>
+      {/* Floating AI Button */}
+      <FloatingAIButton
+        onClick={() => setAiPanelOpen(true)}
+        isOpen={aiPanelOpen}
+      />
+
+      {/* AI Panel */}
+      <AIPanel isOpen={aiPanelOpen} onClose={() => setAiPanelOpen(false)}>
+        <div data-testid="chat-content" className="h-full">
+          <Chat onPortfolioUpdate={handlePortfolioUpdate} />
+        </div>
+      </AIPanel>
     </DashboardLayout>
   );
 }

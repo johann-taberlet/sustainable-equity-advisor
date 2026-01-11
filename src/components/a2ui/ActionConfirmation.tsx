@@ -28,94 +28,17 @@ export function ActionConfirmation({
     switch (actionType) {
       case "add_holding":
       case "update_holding":
-        return <Plus className="h-4 w-4" />;
+        return <Plus className="h-3.5 w-3.5" />;
       case "remove_holding":
-        return <Minus className="h-4 w-4" />;
+        return <Minus className="h-3.5 w-3.5" />;
       case "filter_holdings":
-        return <Filter className="h-4 w-4" />;
+        return <Filter className="h-3.5 w-3.5" />;
       case "create_alert":
-        return <Bell className="h-4 w-4" />;
+        return <Bell className="h-3.5 w-3.5" />;
       case "navigate":
-        return <ArrowRight className="h-4 w-4" />;
+        return <ArrowRight className="h-3.5 w-3.5" />;
       default:
-        return <Check className="h-4 w-4" />;
-    }
-  };
-
-  const getMessage = () => {
-    switch (actionType) {
-      case "add_holding":
-        if (previousShares && previousShares > 0) {
-          return (
-            <>
-              <span className="font-semibold">{symbol}</span>
-              <span className="text-muted-foreground mx-1">·</span>
-              <span className="text-green-600 dark:text-green-400">+{shares} shares</span>
-              <span className="text-muted-foreground mx-1">→</span>
-              <span className="font-medium">{newTotal} total</span>
-            </>
-          );
-        }
-        return (
-          <>
-            <span className="font-semibold">{symbol}</span>
-            <span className="text-muted-foreground mx-1">·</span>
-            <span className="text-green-600 dark:text-green-400">{shares} shares added</span>
-            {name && <span className="text-muted-foreground ml-1">({name})</span>}
-          </>
-        );
-      case "remove_holding":
-        return (
-          <>
-            <span className="font-semibold">{symbol}</span>
-            <span className="text-muted-foreground mx-1">·</span>
-            <span className="text-red-600 dark:text-red-400">Removed from portfolio</span>
-          </>
-        );
-      case "update_holding":
-        return (
-          <>
-            <span className="font-semibold">{symbol}</span>
-            <span className="text-muted-foreground mx-1">·</span>
-            <span>Updated to {shares} shares</span>
-          </>
-        );
-      case "filter_holdings":
-        return (
-          <>
-            <span>Filtered:</span>
-            <span className="font-medium ml-1">{filterCriteria}</span>
-          </>
-        );
-      case "create_alert":
-        return (
-          <>
-            <span className="font-semibold">{symbol}</span>
-            <span className="text-muted-foreground mx-1">·</span>
-            <span>Alert created</span>
-          </>
-        );
-      case "navigate":
-        return (
-          <>
-            <span>Navigated to</span>
-            <span className="font-medium ml-1 capitalize">{section}</span>
-          </>
-        );
-      default:
-        return <span>Action completed</span>;
-    }
-  };
-
-  const getBgColor = () => {
-    switch (actionType) {
-      case "add_holding":
-      case "update_holding":
-        return "bg-green-500/10 border-green-500/20";
-      case "remove_holding":
-        return "bg-red-500/10 border-red-500/20";
-      default:
-        return "bg-primary/10 border-primary/20";
+        return <Check className="h-3.5 w-3.5" />;
     }
   };
 
@@ -123,29 +46,74 @@ export function ActionConfirmation({
     switch (actionType) {
       case "add_holding":
       case "update_holding":
-        return "text-green-600 dark:text-green-400 bg-green-500/20";
+        return "text-green-600 dark:text-green-400";
       case "remove_holding":
-        return "text-red-600 dark:text-red-400 bg-red-500/20";
+        return "text-red-600 dark:text-red-400";
       default:
-        return "text-primary bg-primary/20";
+        return "text-primary";
+    }
+  };
+
+  const getTextColor = () => {
+    switch (actionType) {
+      case "add_holding":
+      case "update_holding":
+        return "text-green-600 dark:text-green-400";
+      case "remove_holding":
+        return "text-red-600 dark:text-red-400";
+      default:
+        return "text-foreground";
+    }
+  };
+
+  const renderContent = () => {
+    switch (actionType) {
+      case "add_holding":
+        if (previousShares && previousShares > 0) {
+          return (
+            <span className={getTextColor()}>
+              +{shares} {symbol} → {newTotal} total
+            </span>
+          );
+        }
+        return (
+          <span className={getTextColor()}>
+            +{shares} {symbol} added
+          </span>
+        );
+      case "remove_holding":
+        return (
+          <span className={getTextColor()}>
+            {symbol} removed
+          </span>
+        );
+      case "update_holding":
+        return (
+          <span className={getTextColor()}>
+            {symbol} → {shares} shares
+          </span>
+        );
+      case "filter_holdings":
+        return <span>Filtered: {filterCriteria}</span>;
+      case "create_alert":
+        return <span>Alert set for {symbol}</span>;
+      case "navigate":
+        return <span className="capitalize">Viewing {section}</span>;
+      default:
+        return <span>Done</span>;
     }
   };
 
   return (
     <div
       data-testid="action-confirmation"
-      className={cn(
-        "flex items-center gap-3 rounded-lg border px-3 py-2 mt-2",
-        getBgColor()
-      )}
+      className="inline-flex items-center gap-1.5 mt-2 text-sm"
     >
-      <div className={cn("flex h-6 w-6 items-center justify-center rounded-full", getIconColor())}>
+      <span className={cn("flex items-center", getIconColor())}>
         {getIcon()}
-      </div>
-      <div className="flex items-center text-sm">
-        {getMessage()}
-      </div>
-      <Check className="ml-auto h-4 w-4 text-green-600 dark:text-green-400" />
+      </span>
+      {renderContent()}
+      <Check className="h-3.5 w-3.5 text-green-600 dark:text-green-400 ml-1" />
     </div>
   );
 }

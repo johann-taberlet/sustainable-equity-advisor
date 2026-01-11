@@ -3,6 +3,8 @@
  * Uses xiaomi/mimo-v2-flash:free model
  */
 
+import { fetchStockInfo } from "@/lib/fmp";
+
 const OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions";
 const MODEL = "xiaomi/mimo-v2-flash:free";
 
@@ -77,11 +79,15 @@ You can include A2UI JSON blocks to render rich UI components. Embed JSON in you
    Props: holdings (array of {symbol, name, shares, value, esgScore})
    Example: {"surfaceUpdate": {"component": "HoldingsList", "props": {"holdings": [{"symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "value": 9500, "esgScore": 72}]}}}
 
-4. **HoldingCard** - Show details for a single holding (use when user asks about specific stock)
+4. **HoldingCard** - Show details for a single holding THE USER OWNS (use after get_holding tool)
    Props: symbol (string), name (string), shares (number), value (number), esgScore (number), currency (string, optional)
    Example: {"surfaceUpdate": {"component": "HoldingCard", "props": {"symbol": "MSFT", "name": "Microsoft Corp.", "shares": 100, "value": 42000, "esgScore": 85}}}
 
-5. **ActionButton** - Interactive action buttons
+5. **StockInfoCard** - Show stock info for ANY stock (use after get_stock_info tool for stocks NOT in portfolio)
+   Props: symbol (string), name (string), price (number), change (number), changePercent (number), currency (string), exchange (string), marketCap (number), esgScore (number|null)
+   Example: {"surfaceUpdate": {"component": "StockInfoCard", "props": {"symbol": "GOOGL", "name": "Alphabet Inc.", "price": 178.50, "change": 2.30, "changePercent": 1.31, "currency": "USD", "exchange": "NASDAQ", "marketCap": 2200000000000, "esgScore": 72}}}
+
+6. **ActionButton** - Interactive action buttons
    Props: label (string), action (string), variant ("default" | "outline" | "secondary")
    Example: {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "View Details", "action": "view-details", "variant": "default"}}}
 
@@ -150,15 +156,19 @@ Response: Filtering to technology holdings with ESG above 75.
 - Be direct: "Adding X shares" not "I'll add X shares to your portfolio"
 
 ## CRITICAL: Tool Usage Rules
-- ALWAYS use get_portfolio or get_holding tools when the user asks about ANY portfolio data
-- This includes questions about: shares, holdings, stocks, positions, values, how many, which stocks, portfolio
-- NEVER answer portfolio questions from memory or conversation history - ALWAYS call the tool first
+- ALWAYS use tools when the user asks about ANY stock or portfolio data
+- For stocks the user OWNS: use get_portfolio or get_holding, then display with HoldingCard
+- For stocks the user DOESN'T OWN: use get_stock_info, then display with StockInfoCard
+- NEVER answer stock/portfolio questions from memory - ALWAYS call the appropriate tool first
 - Even if you think you know the answer, you MUST call the tool to get current data
-- The portfolio data can change at any time, so cached answers are always wrong
-- When showing data for a SINGLE holding, ALWAYS use the HoldingCard component with data from the tool
-- When showing data for MULTIPLE holdings, use the HoldingsList component`;
 
-// Portfolio tool definitions for function calling
+## Flow Examples
+1. "How many Microsoft shares?" → get_holding(MSFT) → HoldingCard
+2. "What's Google stock price?" → get_stock_info(GOOGL) → StockInfoCard
+3. "Buy 20 Google" → get_stock_info(GOOGL) first to confirm, then add_holding action
+4. "Show my portfolio" → get_portfolio → HoldingsList or PortfolioSummaryCard`;
+
+// Tool definitions for function calling
 export const PORTFOLIO_TOOLS = [
   {
     type: "function" as const,
@@ -176,7 +186,7 @@ export const PORTFOLIO_TOOLS = [
     type: "function" as const,
     function: {
       name: "get_holding",
-      description: "Get details about a specific holding in the user's portfolio by symbol. Use this when the user asks about a specific stock.",
+      description: "Get details about a specific holding in the user's portfolio by symbol. Use this when the user asks about a specific stock THEY OWN.",
       parameters: {
         type: "object",
         properties: {
@@ -189,16 +199,33 @@ export const PORTFOLIO_TOOLS = [
       },
     },
   },
+  {
+    type: "function" as const,
+    function: {
+      name: "get_stock_info",
+      description: "Get real-time stock information for ANY stock (not just portfolio holdings). Use this when the user asks about a stock they DON'T own, wants to research a stock, or asks about stock price/value before buying. Returns real-time price, change, market cap, and ESG score.",
+      parameters: {
+        type: "object",
+        properties: {
+          symbol: {
+            type: "string",
+            description: "The stock symbol (e.g., GOOGL, TSLA, AMZN)",
+          },
+        },
+        required: ["symbol"],
+      },
+    },
+  },
 ];
 
 /**
- * Execute a portfolio tool and return the result
+ * Execute a tool and return the result
  */
-function executePortfolioTool(
+async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
   holdings: PortfolioHolding[]
-): { result: unknown; toolUsed: string } {
+): Promise<{ result: unknown; toolUsed: string }> {
   if (toolName === "get_portfolio") {
     const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
     const avgEsg = holdings.length > 0
@@ -235,7 +262,7 @@ function executePortfolioTool(
     if (!holding) {
       return {
         toolUsed: "get_holding",
-        result: { error: `No holding found with symbol ${symbol}` },
+        result: { error: `No holding found with symbol ${symbol}. Use get_stock_info to look up stocks not in portfolio.` },
       };
     }
 
@@ -248,6 +275,33 @@ function executePortfolioTool(
         value: holding.value,
         esgScore: holding.esgScore,
         sector: holding.sector,
+      },
+    };
+  }
+
+  if (toolName === "get_stock_info") {
+    const symbol = args.symbol as string;
+    const stockInfo = await fetchStockInfo(symbol.toUpperCase());
+
+    if (!stockInfo) {
+      return {
+        toolUsed: "get_stock_info",
+        result: { error: `Could not find stock information for ${symbol}` },
+      };
+    }
+
+    return {
+      toolUsed: "get_stock_info",
+      result: {
+        symbol: stockInfo.symbol,
+        name: stockInfo.name,
+        price: stockInfo.price,
+        change: stockInfo.change,
+        changePercent: stockInfo.changePercent,
+        currency: stockInfo.currency,
+        exchange: stockInfo.exchange,
+        marketCap: stockInfo.marketCap,
+        esgScore: stockInfo.esgScore,
       },
     };
   }
@@ -331,7 +385,7 @@ export async function callOpenRouter(
       // Execute each tool call and add results
       for (const toolCall of assistantMessage.tool_calls || []) {
         const args = JSON.parse(toolCall.function.arguments || "{}");
-        const { result, toolUsed } = executePortfolioTool(
+        const { result, toolUsed } = await executeTool(
           toolCall.function.name,
           args,
           holdings

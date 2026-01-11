@@ -29,6 +29,26 @@ export interface StockQuote {
   price: number;
   change: number;
   changePercent: number;
+  volume: number;
+  marketCap: number;
+  pe: number | null;
+  exchange: string;
+}
+
+export interface StockInfo {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  currency: string;
+  exchange: string;
+  marketCap: number;
+  pe: number | null;
+  esgScore: number | null;
+  environmentalScore: number | null;
+  socialScore: number | null;
+  governanceScore: number | null;
 }
 
 // In-memory cache (in production, use Redis or Supabase esg_cache table)
@@ -307,4 +327,99 @@ export function hasESGData(symbol: string): boolean {
  */
 export function getAvailableSymbols(): string[] {
   return Object.keys(mockESGData);
+}
+
+// Quote cache (shorter TTL for prices)
+const quoteCache = new Map<string, { data: StockQuote; expiresAt: number }>();
+const QUOTE_CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes for prices
+
+/**
+ * Fetch real-time stock quote from FMP API
+ */
+export async function fetchStockQuote(symbol: string): Promise<StockQuote | null> {
+  // Check cache first
+  const cached = quoteCache.get(symbol);
+  if (cached && cached.expiresAt > Date.now()) {
+    return cached.data;
+  }
+
+  const apiKey = process.env.FMP_API_KEY;
+  if (!apiKey) {
+    console.warn("FMP_API_KEY not set, cannot fetch stock quote");
+    return null;
+  }
+
+  try {
+    const response = await fetch(
+      `${FMP_BASE_URL}/quote?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`,
+      { next: { revalidate: 300 } } // Cache for 5 minutes
+    );
+
+    if (!response.ok) {
+      console.warn(`FMP quote API error for ${symbol}: ${response.status}`);
+      return null;
+    }
+
+    const data = await response.json();
+    const quote = Array.isArray(data) ? data[0] : data;
+
+    if (!quote || !quote.price) {
+      console.warn(`No quote data for ${symbol}`);
+      return null;
+    }
+
+    const stockQuote: StockQuote = {
+      symbol: quote.symbol || symbol,
+      name: quote.name || quote.companyName || symbol,
+      price: quote.price || 0,
+      change: quote.change || 0,
+      changePercent: quote.changesPercentage || quote.changePercent || 0,
+      volume: quote.volume || 0,
+      marketCap: quote.marketCap || 0,
+      pe: quote.pe || null,
+      exchange: quote.exchange || quote.exchangeShortName || "",
+    };
+
+    quoteCache.set(symbol, {
+      data: stockQuote,
+      expiresAt: Date.now() + QUOTE_CACHE_TTL_MS,
+    });
+
+    return stockQuote;
+  } catch (error) {
+    console.error(`Error fetching quote for ${symbol}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Fetch complete stock info (quote + ESG) for any symbol
+ * This is used for looking up stocks not in portfolio
+ */
+export async function fetchStockInfo(symbol: string): Promise<StockInfo | null> {
+  // Fetch quote and ESG in parallel
+  const [quote, esg] = await Promise.all([
+    fetchStockQuote(symbol),
+    fetchESGData(symbol),
+  ]);
+
+  if (!quote) {
+    return null;
+  }
+
+  return {
+    symbol: quote.symbol,
+    name: quote.name,
+    price: quote.price,
+    change: quote.change,
+    changePercent: quote.changePercent,
+    currency: "USD", // FMP returns USD prices by default
+    exchange: quote.exchange,
+    marketCap: quote.marketCap,
+    pe: quote.pe,
+    esgScore: esg?.esgScore || null,
+    environmentalScore: esg?.environmentalScore || null,
+    socialScore: esg?.socialScore || null,
+    governanceScore: esg?.governanceScore || null,
+  };
 }

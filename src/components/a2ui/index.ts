@@ -3,6 +3,7 @@ export { PortfolioSummaryCard } from "./PortfolioSummaryCard";
 export { ESGScoreGauge } from "./ESGScoreGauge";
 export { HoldingsList } from "./HoldingsList";
 export { HoldingCard } from "./HoldingCard";
+export { StockInfoCard } from "./StockInfoCard";
 export { ActionButton } from "./ActionButton";
 export { ActionConfirmation } from "./ActionConfirmation";
 export { DataQueryBadge } from "./DataQueryBadge";

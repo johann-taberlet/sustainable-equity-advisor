@@ -5,6 +5,7 @@ import { PortfolioSummaryCard } from "./PortfolioSummaryCard";
 import { ESGScoreGauge } from "./ESGScoreGauge";
 import { HoldingsList } from "./HoldingsList";
 import { HoldingCard } from "./HoldingCard";
+import { StockInfoCard } from "./StockInfoCard";
 import { ActionButton } from "./ActionButton";
 import { ActionConfirmation } from "./ActionConfirmation";
 import type { ComponentType } from "react";
@@ -16,6 +17,7 @@ const componentRegistry: Record<string, ComponentType<Record<string, unknown>>> 
   ESGScoreGauge: ESGScoreGauge as unknown as ComponentType<Record<string, unknown>>,
   HoldingsList: HoldingsList as unknown as ComponentType<Record<string, unknown>>,
   HoldingCard: HoldingCard as unknown as ComponentType<Record<string, unknown>>,
+  StockInfoCard: StockInfoCard as unknown as ComponentType<Record<string, unknown>>,
   ActionButton: ActionButton as unknown as ComponentType<Record<string, unknown>>,
   ActionConfirmation: ActionConfirmation as unknown as ComponentType<Record<string, unknown>>,
 };

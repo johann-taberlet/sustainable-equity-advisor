@@ -221,19 +221,12 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
   try {
     // FMP ESG Ratings endpoint (stable API)
     // Docs: https://site.financialmodelingprep.com/developer/docs/stable/esg-ratings
-    const response = await fetch(
-      `${FMP_BASE_URL}/esg-ratings?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`,
-      { next: { revalidate: 86400 } } // Cache for 24 hours
-    );
+    const url = `${FMP_BASE_URL}/esg-ratings?symbol=${encodeURIComponent(symbol)}&apikey=${apiKey}`;
+
+    const response = await fetch(url, { next: { revalidate: 86400 } });
 
     if (!response.ok) {
-      console.warn(`FMP API error for ${symbol}: ${response.status}`);
-      // Fallback to mock data
-      const mockData = getMockESGData(symbol);
-      if (mockData) {
-        setCachedESGData(symbol, mockData);
-        return mockData;
-      }
+      // ESG endpoint may require paid plan
       return null;
     }
 

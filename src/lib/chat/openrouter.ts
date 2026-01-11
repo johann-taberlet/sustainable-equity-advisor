@@ -77,7 +77,11 @@ You can include A2UI JSON blocks to render rich UI components. Embed JSON in you
    Props: holdings (array of {symbol, name, shares, value, esgScore})
    Example: {"surfaceUpdate": {"component": "HoldingsList", "props": {"holdings": [{"symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "value": 9500, "esgScore": 72}]}}}
 
-4. **ActionButton** - Interactive action buttons
+4. **HoldingCard** - Show details for a single holding (use when user asks about specific stock)
+   Props: symbol (string), name (string), shares (number), value (number), esgScore (number), currency (string, optional)
+   Example: {"surfaceUpdate": {"component": "HoldingCard", "props": {"symbol": "MSFT", "name": "Microsoft Corp.", "shares": 100, "value": 42000, "esgScore": 85}}}
+
+5. **ActionButton** - Interactive action buttons
    Props: label (string), action (string), variant ("default" | "outline" | "secondary")
    Example: {"surfaceUpdate": {"component": "ActionButton", "props": {"label": "View Details", "action": "view-details", "variant": "default"}}}
 
@@ -150,7 +154,9 @@ Response: Filtering to technology holdings with ESG above 75.
 - This includes questions about: shares, holdings, stocks, positions, values, how many, which stocks, portfolio
 - NEVER answer portfolio questions from memory or conversation history - ALWAYS call the tool first
 - Even if you think you know the answer, you MUST call the tool to get current data
-- The portfolio data can change at any time, so cached answers are always wrong`;
+- The portfolio data can change at any time, so cached answers are always wrong
+- When showing data for a SINGLE holding, ALWAYS use the HoldingCard component with data from the tool
+- When showing data for MULTIPLE holdings, use the HoldingsList component`;
 
 // Portfolio tool definitions for function calling
 export const PORTFOLIO_TOOLS = [

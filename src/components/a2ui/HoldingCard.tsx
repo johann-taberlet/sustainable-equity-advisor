@@ -1,4 +1,3 @@
-import { TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface HoldingCardProps {
@@ -40,35 +39,35 @@ export function HoldingCard({
   return (
     <div
       data-testid="holding-card"
-      className="mt-3 rounded-lg border bg-card p-4 shadow-sm"
+      className="mt-3 rounded-lg border bg-card p-3 shadow-sm"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="font-semibold text-base">{symbol}</span>
-            <span className="text-muted-foreground text-sm truncate">{name}</span>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-3 min-w-0">
+          <div
+            className={cn(
+              "flex flex-col items-center justify-center rounded-md px-2 py-1 shrink-0",
+              getEsgBg(esgScore)
+            )}
+          >
+            <span className={cn("text-lg font-bold leading-none", getEsgColor(esgScore))}>
+              {esgScore}
+            </span>
+            <span className="text-[10px] text-muted-foreground">ESG</span>
           </div>
-          <div className="mt-2 flex items-baseline gap-4">
-            <div>
-              <span className="text-2xl font-bold">{shares}</span>
-              <span className="text-muted-foreground text-sm ml-1">shares</span>
+          <div className="min-w-0">
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-semibold">{symbol}</span>
+              <span className="text-muted-foreground text-sm truncate">{name}</span>
             </div>
-            <div className="text-muted-foreground">
-              <TrendingUp className="inline h-4 w-4 mr-1" />
-              <span className="font-medium text-foreground">{formattedValue}</span>
+            <div className="flex items-baseline gap-3 text-sm">
+              <span>
+                <span className="font-semibold text-base">{shares}</span>
+                <span className="text-muted-foreground ml-1">shares</span>
+              </span>
+              <span className="text-muted-foreground">•</span>
+              <span className="font-medium">{formattedValue}</span>
             </div>
           </div>
-        </div>
-        <div
-          className={cn(
-            "flex flex-col items-center justify-center rounded-lg px-3 py-2",
-            getEsgBg(esgScore)
-          )}
-        >
-          <span className={cn("text-xl font-bold", getEsgColor(esgScore))}>
-            {esgScore}
-          </span>
-          <span className="text-xs text-muted-foreground">ESG</span>
         </div>
       </div>
     </div>

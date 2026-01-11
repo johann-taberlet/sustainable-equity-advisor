@@ -90,7 +90,7 @@ export function ESGDashboard({
             {/* Main score */}
             <div className="text-center sm:text-left">
               <div
-                className={cn("text-5xl font-bold", getESGColorClass(portfolioScore))}
+                className={cn("font-data text-5xl font-bold", getESGColorClass(portfolioScore))}
                 data-testid="portfolio-esg"
               >
                 {portfolioScore}
@@ -106,7 +106,7 @@ export function ESGDashboard({
                 </div>
                 <div
                   className={cn(
-                    "text-2xl font-bold",
+                    "font-data text-2xl font-bold",
                     getESGColorClass(environmentalScore || 0),
                   )}
                   data-testid="e-score"
@@ -124,7 +124,7 @@ export function ESGDashboard({
                 </div>
                 <div
                   className={cn(
-                    "text-2xl font-bold",
+                    "font-data text-2xl font-bold",
                     getESGColorClass(socialScore || 0),
                   )}
                   data-testid="s-score"
@@ -139,7 +139,7 @@ export function ESGDashboard({
                 </div>
                 <div
                   className={cn(
-                    "text-2xl font-bold",
+                    "font-data text-2xl font-bold",
                     getESGColorClass(governanceScore || 0),
                   )}
                   data-testid="g-score"
@@ -208,7 +208,7 @@ export function ESGDashboard({
                     <span className="font-medium">{h.symbol}</span>
                     <span className="ml-2 text-muted-foreground">{h.name}</span>
                   </div>
-                  <span className={cn("font-medium", getESGColorClass(h.esgScore))}>
+                  <span className={cn("font-data font-medium", getESGColorClass(h.esgScore))}>
                     {h.esgScore}
                   </span>
                 </div>
@@ -232,7 +232,7 @@ export function ESGDashboard({
                     <span className="font-medium">{h.symbol}</span>
                     <span className="ml-2 text-muted-foreground">{h.name}</span>
                   </div>
-                  <span className={cn("font-medium", getESGColorClass(h.esgScore))}>
+                  <span className={cn("font-data font-medium", getESGColorClass(h.esgScore))}>
                     {h.esgScore}
                   </span>
                 </div>

@@ -129,7 +129,7 @@ export function PerformanceChart({
           <div className="mt-1 flex items-baseline gap-2">
             <span
               className={cn(
-                "text-lg font-semibold",
+                "font-data text-lg font-semibold",
                 isPositive
                   ? "text-green-600 dark:text-green-400"
                   : "text-red-600 dark:text-red-400",
@@ -138,7 +138,7 @@ export function PerformanceChart({
               {isPositive ? "+" : ""}
               {changePercent.toFixed(2)}%
             </span>
-            <span className="text-sm text-muted-foreground">
+            <span className="font-data text-sm text-muted-foreground">
               ({isPositive ? "+" : ""}
               {currency} {change.toLocaleString("en-CH")})
             </span>
@@ -194,7 +194,7 @@ export function PerformanceChart({
                       <p className="text-xs text-muted-foreground">
                         {point.date}
                       </p>
-                      <p className="text-sm font-medium">
+                      <p className="font-data text-sm font-medium">
                         {currency} {point.value.toLocaleString("en-CH")}
                       </p>
                       {showBenchmark && point.benchmark !== undefined && (

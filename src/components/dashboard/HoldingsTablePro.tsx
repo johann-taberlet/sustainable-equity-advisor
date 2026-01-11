@@ -240,11 +240,11 @@ export function HoldingsTablePro({
                 >
                   <TableCell className="font-medium">{holding.symbol}</TableCell>
                   <TableCell>{holding.name}</TableCell>
-                  <TableCell className="text-right">{holding.shares}</TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="font-data text-right">{holding.shares}</TableCell>
+                  <TableCell className="font-data text-right">
                     {currency} {holding.value.toLocaleString("en-CH")}
                   </TableCell>
-                  <TableCell className="text-right">
+                  <TableCell className="font-data text-right">
                     {totalValue > 0
                       ? ((holding.value / totalValue) * 100).toFixed(1)
                       : 0}
@@ -252,7 +252,7 @@ export function HoldingsTablePro({
                   </TableCell>
                   <TableCell className="text-right">
                     <span
-                      className={cn("font-medium", getESGColorClass(holding.esgScore))}
+                      className={cn("font-data font-medium", getESGColorClass(holding.esgScore))}
                       data-testid="holding-esg-score"
                     >
                       {holding.esgScore}

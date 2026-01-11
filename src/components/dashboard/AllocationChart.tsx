@@ -97,6 +97,7 @@ export function AllocationChart({
                 ))}
               </Pie>
               <Tooltip
+                contentStyle={{ fontFamily: "var(--font-jetbrains-mono)" }}
                 formatter={(value: number, name: string) => [
                   `${currency} ${value.toLocaleString("en-CH")} (${((value / totalValue) * 100).toFixed(1)}%)`,
                   name,

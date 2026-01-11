@@ -71,7 +71,7 @@ export function PortfolioOverview({
         </CardHeader>
         <CardContent>
           <div
-            className="text-2xl font-bold"
+            className="font-data text-2xl font-bold"
             data-testid="portfolio-value"
           >
             {currency} {totalValue.toLocaleString("en-CH")}
@@ -93,7 +93,7 @@ export function PortfolioOverview({
         <CardContent>
           <div
             className={cn(
-              "text-2xl font-bold",
+              "font-data text-2xl font-bold",
               isPositive
                 ? "text-green-600 dark:text-green-400"
                 : "text-red-600 dark:text-red-400",
@@ -118,7 +118,7 @@ export function PortfolioOverview({
         </CardHeader>
         <CardContent>
           <div
-            className={cn("text-2xl font-bold", getESGColorClass(esgScore))}
+            className={cn("font-data text-2xl font-bold", getESGColorClass(esgScore))}
             data-testid="portfolio-esg"
           >
             {esgScore}/100
@@ -127,7 +127,7 @@ export function PortfolioOverview({
             {environmentalScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Environmental</span>
-                <span className={getESGColorClass(environmentalScore)}>
+                <span className={cn("font-data", getESGColorClass(environmentalScore))}>
                   {environmentalScore}
                 </span>
               </div>
@@ -135,7 +135,7 @@ export function PortfolioOverview({
             {socialScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Social</span>
-                <span className={getESGColorClass(socialScore)}>
+                <span className={cn("font-data", getESGColorClass(socialScore))}>
                   {socialScore}
                 </span>
               </div>
@@ -143,7 +143,7 @@ export function PortfolioOverview({
             {governanceScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Governance</span>
-                <span className={getESGColorClass(governanceScore)}>
+                <span className={cn("font-data", getESGColorClass(governanceScore))}>
                   {governanceScore}
                 </span>
               </div>
@@ -164,7 +164,7 @@ export function PortfolioOverview({
                 <div key={sector.sector}>
                   <div className="flex items-center justify-between text-xs">
                     <span>{sector.sector}</span>
-                    <span className="font-medium">
+                    <span className="font-data font-medium">
                       {sector.percentage.toFixed(1)}%
                     </span>
                   </div>

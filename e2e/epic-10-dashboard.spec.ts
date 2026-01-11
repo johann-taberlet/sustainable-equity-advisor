@@ -20,11 +20,16 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   // Task 10.1: Portfolio summary header
   // Acceptance: Header shows value, change, ESG score
   test("portfolio summary header displays key metrics", async ({ page }) => {
-    await page.waitForSelector("[data-testid='portfolio-summary'], [data-testid='dashboard-header']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='portfolio-summary'], [data-testid='dashboard-header']",
+      {
+        timeout: 10000,
+      },
+    );
 
-    const header = page.locator("[data-testid='portfolio-summary'], [data-testid='dashboard-header']");
+    const header = page.locator(
+      "[data-testid='portfolio-summary'], [data-testid='dashboard-header']",
+    );
 
     // Should show total value
     await expect(header).toContainText(/CHF|USD|EUR|\$|€/);
@@ -35,11 +40,16 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   });
 
   test("portfolio header shows daily change", async ({ page }) => {
-    await page.waitForSelector("[data-testid='portfolio-change'], [data-testid='daily-change']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='portfolio-change'], [data-testid='daily-change']",
+      {
+        timeout: 10000,
+      },
+    );
 
-    const change = page.locator("[data-testid='portfolio-change'], [data-testid='daily-change']");
+    const change = page.locator(
+      "[data-testid='portfolio-change'], [data-testid='daily-change']",
+    );
     await expect(change).toBeVisible();
 
     // Should show percentage or arrow
@@ -48,11 +58,16 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   });
 
   test("portfolio header shows aggregate ESG score", async ({ page }) => {
-    await page.waitForSelector("[data-testid='portfolio-esg'], [data-testid='esg-score']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='portfolio-esg'], [data-testid='esg-score']",
+      {
+        timeout: 10000,
+      },
+    );
 
-    const esg = page.locator("[data-testid='portfolio-esg'], [data-testid='esg-score']").first();
+    const esg = page
+      .locator("[data-testid='portfolio-esg'], [data-testid='esg-score']")
+      .first();
     await expect(esg).toBeVisible();
 
     // Should show score
@@ -63,7 +78,9 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   test("header is responsive on mobile", async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 667 });
 
-    const header = page.locator("[data-testid='portfolio-summary'], [data-testid='dashboard-header']");
+    const header = page.locator(
+      "[data-testid='portfolio-summary'], [data-testid='dashboard-header']",
+    );
 
     // Header should still be visible
     await expect(header).toBeVisible();
@@ -78,20 +95,28 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   test("holdings table displays all portfolio stocks", async ({ page }) => {
     await page.waitForSelector(
       "[data-testid='holdings-table'], [data-testid='holdings-list'], table",
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
 
-    const table = page.locator("[data-testid='holdings-table'], [data-testid='holdings-list'], table").first();
+    const table = page
+      .locator(
+        "[data-testid='holdings-table'], [data-testid='holdings-list'], table",
+      )
+      .first();
     await expect(table).toBeVisible();
 
     // Should have multiple rows
-    const rows = table.locator("[data-testid='holding-row'], tr[data-symbol], tbody tr");
+    const rows = table.locator(
+      "[data-testid='holding-row'], tr[data-symbol], tbody tr",
+    );
     const count = await rows.count();
     expect(count).toBeGreaterThanOrEqual(5);
   });
 
   test("holdings table shows key columns", async ({ page }) => {
-    await page.waitForSelector("[data-testid='holdings-table'], table", { timeout: 10000 });
+    await page.waitForSelector("[data-testid='holdings-table'], table", {
+      timeout: 10000,
+    });
 
     const table = page.locator("[data-testid='holdings-table'], table").first();
     const tableText = await table.textContent();
@@ -103,11 +128,13 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   });
 
   test("holdings table is sortable", async ({ page }) => {
-    await page.waitForSelector("[data-testid='holdings-table'], table", { timeout: 10000 });
+    await page.waitForSelector("[data-testid='holdings-table'], table", {
+      timeout: 10000,
+    });
 
     // Find sortable column header
     const sortableHeader = page.locator(
-      "th[role='columnheader'][aria-sort], th:has([data-testid='sort']), th button"
+      "th[role='columnheader'][aria-sort], th:has([data-testid='sort']), th button",
     );
 
     if ((await sortableHeader.count()) > 0) {
@@ -116,11 +143,15 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
 
       // Should have aria-sort attribute or visual indicator
       await page.waitForTimeout(500);
-      const sorted = page.locator("th[aria-sort='ascending'], th[aria-sort='descending'], th .sort-indicator");
+      const sorted = page.locator(
+        "th[aria-sort='ascending'], th[aria-sort='descending'], th .sort-indicator",
+      );
       expect(await sorted.count()).toBeGreaterThan(0);
     } else {
       // Alternative: check for sort controls elsewhere
-      const sortControl = page.locator("[data-testid='sort-by'], select[name*='sort']");
+      const sortControl = page.locator(
+        "[data-testid='sort-by'], select[name*='sort']",
+      );
       expect(await sortControl.count()).toBeGreaterThanOrEqual(0);
     }
   });
@@ -130,12 +161,12 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   test("allocation pie chart is displayed", async ({ page }) => {
     await page.waitForSelector(
       "[data-testid='allocation-chart'], [data-testid='sector-chart'], svg, canvas",
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
 
     // Should have a chart element
     const chart = page.locator(
-      "[data-testid='allocation-chart'], [data-testid='sector-chart'], [role='img'][aria-label*='chart' i], svg.recharts-surface"
+      "[data-testid='allocation-chart'], [data-testid='sector-chart'], [role='img'][aria-label*='chart' i], svg.recharts-surface",
     );
     const hasChart = (await chart.count()) > 0;
 
@@ -147,27 +178,44 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   });
 
   test("chart shows sector breakdown", async ({ page }) => {
-    await page.waitForSelector("[data-testid='sector-chart'], [data-testid='allocation-chart']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='sector-chart'], [data-testid='allocation-chart']",
+      {
+        timeout: 10000,
+      },
+    );
 
     // Chart should show sector labels
-    const chartArea = page.locator("[data-testid='sector-chart'], [data-testid='allocation-chart']").first();
+    const chartArea = page
+      .locator("[data-testid='sector-chart'], [data-testid='allocation-chart']")
+      .first();
     const text = await chartArea.textContent();
 
     // Should mention sectors
-    const sectors = ["Technology", "Healthcare", "Consumer", "Financial", "Energy", "Industrial", "Utilities"];
-    const hasSector = sectors.some((s) => text?.toLowerCase().includes(s.toLowerCase()));
+    const sectors = [
+      "Technology",
+      "Healthcare",
+      "Consumer",
+      "Financial",
+      "Energy",
+      "Industrial",
+      "Utilities",
+    ];
+    const hasSector = sectors.some((s) =>
+      text?.toLowerCase().includes(s.toLowerCase()),
+    );
 
     expect(hasSector).toBeTruthy();
   });
 
   test("chart has legend or tooltips", async ({ page }) => {
-    await page.waitForSelector("[data-testid='allocation-chart'], svg", { timeout: 10000 });
+    await page.waitForSelector("[data-testid='allocation-chart'], svg", {
+      timeout: 10000,
+    });
 
     // Check for legend
     const legend = page.locator(
-      "[data-testid='chart-legend'], .recharts-legend-wrapper, [role='list'][aria-label*='legend' i]"
+      "[data-testid='chart-legend'], .recharts-legend-wrapper, [role='list'][aria-label*='legend' i]",
     );
     const hasLegend = (await legend.count()) > 0;
 
@@ -177,7 +225,9 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
       await chart.hover();
       await page.waitForTimeout(500);
 
-      const tooltip = page.locator("[role='tooltip'], .recharts-tooltip-wrapper, [data-testid='chart-tooltip']");
+      const tooltip = page.locator(
+        "[role='tooltip'], .recharts-tooltip-wrapper, [data-testid='chart-tooltip']",
+      );
       const hasTooltip = (await tooltip.count()) > 0;
 
       expect(hasLegend || hasTooltip).toBeTruthy();
@@ -189,20 +239,30 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   // Task 10.4: ESG breakdown chart
   // Acceptance: Chart showing E, S, G components
   test("ESG breakdown chart is displayed", async ({ page }) => {
-    await page.waitForSelector("[data-testid='esg-chart'], [data-testid='esg-breakdown']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='esg-chart'], [data-testid='esg-breakdown']",
+      {
+        timeout: 10000,
+      },
+    );
 
-    const esgChart = page.locator("[data-testid='esg-chart'], [data-testid='esg-breakdown']").first();
+    const esgChart = page
+      .locator("[data-testid='esg-chart'], [data-testid='esg-breakdown']")
+      .first();
     await expect(esgChart).toBeVisible();
   });
 
   test("ESG chart shows E, S, G components", async ({ page }) => {
-    await page.waitForSelector("[data-testid='esg-chart'], [data-testid='esg-breakdown']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='esg-chart'], [data-testid='esg-breakdown']",
+      {
+        timeout: 10000,
+      },
+    );
 
-    const chartArea = page.locator("[data-testid='esg-chart'], [data-testid='esg-breakdown']").first();
+    const chartArea = page
+      .locator("[data-testid='esg-chart'], [data-testid='esg-breakdown']")
+      .first();
     const text = await chartArea.textContent();
 
     // Should show all three components
@@ -218,9 +278,12 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
     await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
 
     // Wait for key dashboard element
-    await page.waitForSelector("[data-testid='portfolio-summary'], [data-testid='holdings-table']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='portfolio-summary'], [data-testid='holdings-table']",
+      {
+        timeout: 10000,
+      },
+    );
 
     const loadTime = Date.now() - startTime;
 
@@ -239,10 +302,12 @@ test.describe("Epic 10: Portfolio Dashboard Tab", () => {
     // Charts should still be visible
     await page.waitForSelector(
       "[data-testid='allocation-chart'], [data-testid='esg-chart'], svg, canvas",
-      { timeout: 10000 }
+      { timeout: 10000 },
     );
 
-    const charts = page.locator("[data-testid='allocation-chart'], [data-testid='esg-chart']");
+    const charts = page.locator(
+      "[data-testid='allocation-chart'], [data-testid='esg-chart']",
+    );
     const count = await charts.count();
     expect(count).toBeGreaterThan(0);
 

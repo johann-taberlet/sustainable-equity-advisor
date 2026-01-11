@@ -51,5 +51,30 @@ export interface HoldingsListProps {
 export interface ActionButtonProps {
   label: string;
   action: string;
-  variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link";
+  variant?:
+    | "default"
+    | "destructive"
+    | "outline"
+    | "secondary"
+    | "ghost"
+    | "link";
+}
+
+export interface ESGRadarChartProps {
+  symbol: string;
+  companyName: string;
+  environmental: number;
+  social: number;
+  governance: number;
+}
+
+export interface ESGComparisonChartProps {
+  companies: Array<{
+    symbol: string;
+    name: string;
+    esgScore: number;
+    environmental?: number;
+    social?: number;
+    governance?: number;
+  }>;
 }

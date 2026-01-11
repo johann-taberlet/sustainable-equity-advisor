@@ -119,7 +119,7 @@ You can execute dashboard actions by including action JSON in your response. Use
    Example: {"action": {"type": "create_alert", "payload": {"symbol": "MSFT", "alertType": "price_above", "value": 400}}}
 
 5. **navigate** - Navigate to a dashboard section
-   Payload: { section: "dashboard" | "holdings" | "esg" | "screening" | "watchlist" | "settings" }
+   Payload: { section: "dashboard" | "holdings" | "esg" | "screening" | "settings" }
    Example: {"action": {"type": "navigate", "payload": {"section": "holdings"}}}
 
 6. **highlight** - Highlight specific symbols in the UI
@@ -180,7 +180,8 @@ export const PORTFOLIO_TOOLS = [
     type: "function" as const,
     function: {
       name: "get_portfolio",
-      description: "Get the user's current portfolio holdings with real-time data including symbols, shares, values, and ESG scores. Use this whenever the user asks about their holdings, portfolio value, specific stocks they own, or any portfolio-related question.",
+      description:
+        "Get the user's current portfolio holdings with real-time data including symbols, shares, values, and ESG scores. Use this whenever the user asks about their holdings, portfolio value, specific stocks they own, or any portfolio-related question.",
       parameters: {
         type: "object",
         properties: {},
@@ -192,7 +193,8 @@ export const PORTFOLIO_TOOLS = [
     type: "function" as const,
     function: {
       name: "get_holding",
-      description: "Get details about a specific holding in the user's portfolio by symbol. Use this when the user asks about a specific stock THEY OWN.",
+      description:
+        "Get details about a specific holding in the user's portfolio by symbol. Use this when the user asks about a specific stock THEY OWN.",
       parameters: {
         type: "object",
         properties: {
@@ -209,7 +211,8 @@ export const PORTFOLIO_TOOLS = [
     type: "function" as const,
     function: {
       name: "get_stock_info",
-      description: "Get real-time stock information for ANY stock (not just portfolio holdings). Use this when the user asks about a stock they DON'T own, wants to research a stock, or asks about stock price/value before buying. Returns real-time price, change, market cap, and ESG score.",
+      description:
+        "Get real-time stock information for ANY stock (not just portfolio holdings). Use this when the user asks about a stock they DON'T own, wants to research a stock, or asks about stock price/value before buying. Returns real-time price, change, market cap, and ESG score.",
       parameters: {
         type: "object",
         properties: {
@@ -230,18 +233,21 @@ export const PORTFOLIO_TOOLS = [
 async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
-  holdings: PortfolioHolding[]
+  holdings: PortfolioHolding[],
 ): Promise<{ result: unknown; toolUsed: string }> {
   if (toolName === "get_portfolio") {
     const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
-    const avgEsg = holdings.length > 0
-      ? Math.round(holdings.reduce((sum, h) => sum + h.esgScore, 0) / holdings.length)
-      : 0;
+    const avgEsg =
+      holdings.length > 0
+        ? Math.round(
+            holdings.reduce((sum, h) => sum + h.esgScore, 0) / holdings.length,
+          )
+        : 0;
 
     return {
       toolUsed: "get_portfolio",
       result: {
-        holdings: holdings.map(h => ({
+        holdings: holdings.map((h) => ({
           symbol: h.symbol,
           name: h.name,
           shares: h.shares,
@@ -261,14 +267,16 @@ async function executeTool(
 
   if (toolName === "get_holding") {
     const symbol = args.symbol as string;
-    const holding = holdings.find(h =>
-      h.symbol.toLowerCase() === symbol.toLowerCase()
+    const holding = holdings.find(
+      (h) => h.symbol.toLowerCase() === symbol.toLowerCase(),
     );
 
     if (!holding) {
       return {
         toolUsed: "get_holding",
-        result: { error: `No holding found with symbol ${symbol}. Use get_stock_info to look up stocks not in portfolio.` },
+        result: {
+          error: `No holding found with symbol ${symbol}. Use get_stock_info to look up stocks not in portfolio.`,
+        },
       };
     }
 
@@ -322,7 +330,7 @@ async function executeTool(
 export async function callOpenRouter(
   messages: OpenRouterMessage[],
   apiKey: string,
-  holdings: PortfolioHolding[] = []
+  holdings: PortfolioHolding[] = [],
 ): Promise<{ content: string; toolsUsed: string[] }> {
   // Build the conversation with system prompt
   const conversationMessages: Array<{
@@ -332,7 +340,7 @@ export async function callOpenRouter(
     tool_call_id?: string;
   }> = [
     { role: "system", content: FINANCIAL_ADVISOR_SYSTEM_PROMPT },
-    ...messages.map(m => ({ role: m.role, content: m.content })),
+    ...messages.map((m) => ({ role: m.role, content: m.content })),
   ];
 
   const toolsUsed: string[] = [];
@@ -365,7 +373,9 @@ export async function callOpenRouter(
         throw new Error("Rate limit exceeded. Please try again in a moment.");
       }
       if (response.status === 401) {
-        throw new Error("Invalid API key. Please check your OPENROUTER_API_KEY.");
+        throw new Error(
+          "Invalid API key. Please check your OPENROUTER_API_KEY.",
+        );
       }
       throw new Error(`OpenRouter API error: ${response.status}`);
     }
@@ -380,7 +390,10 @@ export async function callOpenRouter(
     const finishReason = data.choices[0].finish_reason;
 
     // Check if the model wants to call tools
-    if (finishReason === "tool_calls" || (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0)) {
+    if (
+      finishReason === "tool_calls" ||
+      (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0)
+    ) {
       // Add assistant's message with tool calls to conversation
       conversationMessages.push({
         role: "assistant",
@@ -394,7 +407,7 @@ export async function callOpenRouter(
         const { result, toolUsed } = await executeTool(
           toolCall.function.name,
           args,
-          holdings
+          holdings,
         );
 
         toolsUsed.push(toolUsed);
@@ -426,7 +439,7 @@ export async function callOpenRouter(
  */
 export async function* streamOpenRouter(
   messages: OpenRouterMessage[],
-  apiKey: string
+  apiKey: string,
 ): AsyncGenerator<string> {
   const response = await fetch(OPENROUTER_API_URL, {
     method: "POST",

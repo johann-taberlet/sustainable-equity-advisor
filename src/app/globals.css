@@ -107,8 +107,8 @@
   --chart-2: oklch(0.65 0.18 145); /* Green */
   --chart-3: oklch(0.75 0.15 85); /* Amber */
   --chart-4: oklch(0.65 0.2 330); /* Pink */
-  --chart-5: oklch(0.60 0.18 280); /* Purple */
-  --sidebar: oklch(0.10 0 0);
+  --chart-5: oklch(0.6 0.18 280); /* Purple */
+  --sidebar: oklch(0.1 0 0);
   --sidebar-foreground: oklch(0.95 0 0);
   --sidebar-primary: oklch(0.45 0.15 260);
   --sidebar-primary-foreground: oklch(0.98 0 0);

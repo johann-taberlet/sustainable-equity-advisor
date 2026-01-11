@@ -132,7 +132,7 @@ test.describe("Supabase Integration", () => {
         "Industrial",
       ];
       const hasSector = sectors.some((s) =>
-        chartText?.toLowerCase().includes(s.toLowerCase())
+        chartText?.toLowerCase().includes(s.toLowerCase()),
       );
       expect(hasSector).toBeTruthy();
     });

@@ -186,21 +186,27 @@ export type Database = {
 
 // Helper types for each table
 export type Portfolio = Database["public"]["Tables"]["portfolios"]["Row"];
-export type PortfolioInsert = Database["public"]["Tables"]["portfolios"]["Insert"];
-export type PortfolioUpdate = Database["public"]["Tables"]["portfolios"]["Update"];
+export type PortfolioInsert =
+  Database["public"]["Tables"]["portfolios"]["Insert"];
+export type PortfolioUpdate =
+  Database["public"]["Tables"]["portfolios"]["Update"];
 
 export type Holding = Database["public"]["Tables"]["holdings"]["Row"];
 export type HoldingInsert = Database["public"]["Tables"]["holdings"]["Insert"];
 export type HoldingUpdate = Database["public"]["Tables"]["holdings"]["Update"];
 
 export type Transaction = Database["public"]["Tables"]["transactions"]["Row"];
-export type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
-export type TransactionUpdate = Database["public"]["Tables"]["transactions"]["Update"];
+export type TransactionInsert =
+  Database["public"]["Tables"]["transactions"]["Insert"];
+export type TransactionUpdate =
+  Database["public"]["Tables"]["transactions"]["Update"];
 
 export type Alert = Database["public"]["Tables"]["alerts"]["Row"];
 export type AlertInsert = Database["public"]["Tables"]["alerts"]["Insert"];
 export type AlertUpdate = Database["public"]["Tables"]["alerts"]["Update"];
 
 export type EsgCache = Database["public"]["Tables"]["esg_cache"]["Row"];
-export type EsgCacheInsert = Database["public"]["Tables"]["esg_cache"]["Insert"];
-export type EsgCacheUpdate = Database["public"]["Tables"]["esg_cache"]["Update"];
+export type EsgCacheInsert =
+  Database["public"]["Tables"]["esg_cache"]["Insert"];
+export type EsgCacheUpdate =
+  Database["public"]["Tables"]["esg_cache"]["Update"];

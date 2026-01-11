@@ -13,7 +13,9 @@ export interface ParsedAction {
 /**
  * Extract balanced JSON objects from a string
  */
-function extractJsonObjects(content: string): { json: string; start: number; end: number }[] {
+function extractJsonObjects(
+  content: string,
+): { json: string; start: number; end: number }[] {
   const results: { json: string; start: number; end: number }[] = [];
   let i = 0;
 
@@ -72,7 +74,9 @@ function extractJsonObjects(content: string): { json: string; start: number; end
 /**
  * Parse a message to extract A2UI components and actions
  */
-export function parseA2UIMessage(content: string): A2UIMessage & { actions?: ParsedAction[] } {
+export function parseA2UIMessage(
+  content: string,
+): A2UIMessage & { actions?: ParsedAction[] } {
   const components: A2UIComponent[] = [];
   const actions: ParsedAction[] = [];
   let textContent = content;

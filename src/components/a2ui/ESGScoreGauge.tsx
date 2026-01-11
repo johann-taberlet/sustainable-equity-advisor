@@ -45,23 +45,32 @@ export function ESGScoreGauge({
         {(environmental !== undefined ||
           social !== undefined ||
           governance !== undefined) && (
-          <div className="mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-sm" data-testid="esg-breakdown">
+          <div
+            className="mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-sm"
+            data-testid="esg-breakdown"
+          >
             {environmental !== undefined && (
               <>
                 <span className="text-muted-foreground">Environmental</span>
-                <span className={`font-medium ${getScoreColor(environmental)}`}>{environmental}</span>
+                <span className={`font-medium ${getScoreColor(environmental)}`}>
+                  {environmental}
+                </span>
               </>
             )}
             {social !== undefined && (
               <>
                 <span className="text-muted-foreground">Social</span>
-                <span className={`font-medium ${getScoreColor(social)}`}>{social}</span>
+                <span className={`font-medium ${getScoreColor(social)}`}>
+                  {social}
+                </span>
               </>
             )}
             {governance !== undefined && (
               <>
                 <span className="text-muted-foreground">Governance</span>
-                <span className={`font-medium ${getScoreColor(governance)}`}>{governance}</span>
+                <span className={`font-medium ${getScoreColor(governance)}`}>
+                  {governance}
+                </span>
               </>
             )}
           </div>

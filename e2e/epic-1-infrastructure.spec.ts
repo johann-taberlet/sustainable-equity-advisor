@@ -114,7 +114,9 @@ test.describe("Epic 1: Core Infrastructure", () => {
   test("app loads without server errors", async ({ page }) => {
     // No 500 errors
     await expect(page.locator("body")).not.toContainText("500");
-    await expect(page.locator("body")).not.toContainText("Internal Server Error");
+    await expect(page.locator("body")).not.toContainText(
+      "Internal Server Error",
+    );
 
     // No Next.js error overlay
     await expect(page.locator("#__next-build-error")).not.toBeVisible();
@@ -124,7 +126,9 @@ test.describe("Epic 1: Core Infrastructure", () => {
   test("static assets load correctly", async ({ page }) => {
     // Check that CSS is loaded (body has styles)
     const body = page.locator("body");
-    const bgColor = await body.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const bgColor = await body.evaluate(
+      (el) => getComputedStyle(el).backgroundColor,
+    );
     expect(bgColor).not.toBe("");
 
     // No 404 for main assets (check network)
@@ -140,7 +144,7 @@ test.describe("Epic 1: Core Infrastructure", () => {
 
     // Filter out expected 404s (like favicon if not set)
     const criticalFailures = failedRequests.filter(
-      (r) => !r.includes("favicon") && !r.includes(".map")
+      (r) => !r.includes("favicon") && !r.includes(".map"),
     );
     expect(criticalFailures).toHaveLength(0);
   });

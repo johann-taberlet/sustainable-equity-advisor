@@ -62,7 +62,7 @@ const providerRanges: Record<string, ProviderRange> = {
  */
 export function normalizeNumericScore(
   score: number | undefined | null,
-  provider: string = "FMP"
+  provider: string = "FMP",
 ): number {
   if (score === undefined || score === null || Number.isNaN(score)) {
     return 0;
@@ -79,8 +79,7 @@ export function normalizeNumericScore(
 
   // Normalize to 0-100 if provider uses different range
   if (range.min !== 0 || range.max !== 100) {
-    const normalized =
-      ((score - range.min) / (range.max - range.min)) * 100;
+    const normalized = ((score - range.min) / (range.max - range.min)) * 100;
     return clampScore(normalized);
   }
 
@@ -124,7 +123,7 @@ function clampScore(score: number): number {
  */
 export function normalizeESGScore(
   score: number | string | undefined | null,
-  provider: string = "FMP"
+  provider: string = "FMP",
 ): number {
   if (score === undefined || score === null) {
     return 0;
@@ -149,7 +148,7 @@ export function normalizeESGScore(
  * Calculate weighted average ESG score
  */
 export function calculateWeightedESGScore(
-  scores: Array<{ score: number; weight: number }>
+  scores: Array<{ score: number; weight: number }>,
 ): number {
   if (scores.length === 0) {
     return 0;
@@ -172,7 +171,7 @@ export function calculateAggregateESGScore(
   environmental: number,
   social: number,
   governance: number,
-  weights: { e: number; s: number; g: number } = { e: 0.33, s: 0.33, g: 0.34 }
+  weights: { e: number; s: number; g: number } = { e: 0.33, s: 0.33, g: 0.34 },
 ): number {
   return calculateWeightedESGScore([
     { score: environmental, weight: weights.e },
@@ -196,7 +195,7 @@ export function getESGRatingLabel(score: number): string {
  * Get color indicator based on ESG score
  */
 export function getESGColorIndicator(
-  score: number
+  score: number,
 ): "green" | "yellow" | "orange" | "red" {
   if (score >= 80) return "green";
   if (score >= 60) return "yellow";

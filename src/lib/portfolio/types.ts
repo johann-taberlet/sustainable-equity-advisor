@@ -163,7 +163,10 @@ export function calculatePortfolioAggregates(holdings: Holding[]): {
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
 
   // Value-weighted ESG scores
-  const weightedESG = holdings.reduce((sum, h) => sum + h.esgScore * h.value, 0);
+  const weightedESG = holdings.reduce(
+    (sum, h) => sum + h.esgScore * h.value,
+    0,
+  );
   const esgScore = Math.round(weightedESG / totalValue);
 
   // E, S, G components (simple average for now)
@@ -173,17 +176,28 @@ export function calculatePortfolioAggregates(holdings: Holding[]): {
 
   const environmentalScore =
     holdingsWithE.length > 0
-      ? Math.round(holdingsWithE.reduce((sum, h) => sum + (h.environmentalScore || 0), 0) / holdingsWithE.length)
+      ? Math.round(
+          holdingsWithE.reduce(
+            (sum, h) => sum + (h.environmentalScore || 0),
+            0,
+          ) / holdingsWithE.length,
+        )
       : 0;
 
   const socialScore =
     holdingsWithS.length > 0
-      ? Math.round(holdingsWithS.reduce((sum, h) => sum + (h.socialScore || 0), 0) / holdingsWithS.length)
+      ? Math.round(
+          holdingsWithS.reduce((sum, h) => sum + (h.socialScore || 0), 0) /
+            holdingsWithS.length,
+        )
       : 0;
 
   const governanceScore =
     holdingsWithG.length > 0
-      ? Math.round(holdingsWithG.reduce((sum, h) => sum + (h.governanceScore || 0), 0) / holdingsWithG.length)
+      ? Math.round(
+          holdingsWithG.reduce((sum, h) => sum + (h.governanceScore || 0), 0) /
+            holdingsWithG.length,
+        )
       : 0;
 
   return {
@@ -211,8 +225,13 @@ export function calculateHoldingWeights(holdings: Holding[]): Holding[] {
 /**
  * Calculate sector allocation breakdown
  */
-export function calculateSectorAllocation(holdings: Holding[]): SectorAllocation[] {
-  const sectorMap = new Map<string, { value: number; esgSum: number; count: number }>();
+export function calculateSectorAllocation(
+  holdings: Holding[],
+): SectorAllocation[] {
+  const sectorMap = new Map<
+    string,
+    { value: number; esgSum: number; count: number }
+  >();
 
   for (const holding of holdings) {
     const sector = holding.sector || "Other";
@@ -231,7 +250,10 @@ export function calculateSectorAllocation(holdings: Holding[]): SectorAllocation
       label: sector,
       sector,
       value: data.value,
-      percentage: totalValue > 0 ? Math.round((data.value / totalValue) * 100 * 10) / 10 : 0,
+      percentage:
+        totalValue > 0
+          ? Math.round((data.value / totalValue) * 100 * 10) / 10
+          : 0,
       avgEsgScore: Math.round(data.esgSum / data.count),
     }))
     .sort((a, b) => b.value - a.value);

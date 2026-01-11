@@ -107,7 +107,9 @@ export function isFilterHoldingsAction(
   return action.type === "filter_holdings";
 }
 
-export function isAddHoldingAction(action: AIAction): action is AddHoldingAction {
+export function isAddHoldingAction(
+  action: AIAction,
+): action is AddHoldingAction {
   return action.type === "add_holding";
 }
 

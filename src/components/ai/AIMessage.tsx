@@ -30,7 +30,10 @@ export function AIMessage({
   return (
     <div
       data-testid="ai-message"
-      className={cn("flex w-full gap-2", isUser ? "justify-end" : "justify-start")}
+      className={cn(
+        "flex w-full gap-2",
+        isUser ? "justify-end" : "justify-start",
+      )}
     >
       <div
         data-testid={isUser ? "user-message" : "assistant-message"}

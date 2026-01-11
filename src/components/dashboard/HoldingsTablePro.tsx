@@ -238,9 +238,13 @@ export function HoldingsTablePro({
                     isHighlighted && "bg-yellow-50 dark:bg-yellow-950/20",
                   )}
                 >
-                  <TableCell className="font-medium">{holding.symbol}</TableCell>
+                  <TableCell className="font-medium">
+                    {holding.symbol}
+                  </TableCell>
                   <TableCell>{holding.name}</TableCell>
-                  <TableCell className="font-data text-right">{holding.shares}</TableCell>
+                  <TableCell className="font-data text-right">
+                    {holding.shares}
+                  </TableCell>
                   <TableCell className="font-data text-right">
                     {currency} {holding.value.toLocaleString("en-CH")}
                   </TableCell>
@@ -252,7 +256,10 @@ export function HoldingsTablePro({
                   </TableCell>
                   <TableCell className="text-right">
                     <span
-                      className={cn("font-data font-medium", getESGColorClass(holding.esgScore))}
+                      className={cn(
+                        "font-data font-medium",
+                        getESGColorClass(holding.esgScore),
+                      )}
                       data-testid="holding-esg-score"
                     >
                       {holding.esgScore}

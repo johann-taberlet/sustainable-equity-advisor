@@ -38,7 +38,8 @@ export function PortfolioSummaryCard({
           )}
           <span>
             {isPositive ? "+" : ""}
-            {currency} {change.toLocaleString("en-CH")} ({changePercent.toFixed(2)}%)
+            {currency} {change.toLocaleString("en-CH")} (
+            {changePercent.toFixed(2)}%)
           </span>
         </div>
         {esgScore !== undefined && (

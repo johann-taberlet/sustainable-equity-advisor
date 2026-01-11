@@ -14,7 +14,7 @@ export function DataQueryBadge({ tools }: DataQueryBadgeProps) {
 
   // Get unique tool names and their labels
   const uniqueTools = [...new Set(tools)];
-  const labels = uniqueTools.map(t => toolLabels[t] || t).join(", ");
+  const labels = uniqueTools.map((t) => toolLabels[t] || t).join(", ");
 
   return (
     <div

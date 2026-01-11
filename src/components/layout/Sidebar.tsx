@@ -3,7 +3,6 @@
 import { cn } from "@/lib/utils";
 import {
   Briefcase,
-  Eye,
   Filter,
   LayoutDashboard,
   Leaf,
@@ -16,7 +15,6 @@ export type NavigationSection =
   | "holdings"
   | "esg"
   | "screening"
-  | "watchlist"
   | "settings";
 
 interface NavItem {
@@ -30,7 +28,6 @@ const navItems: NavItem[] = [
   { id: "holdings", label: "Holdings", icon: Briefcase },
   { id: "esg", label: "ESG Analysis", icon: Leaf },
   { id: "screening", label: "Screening", icon: Filter },
-  { id: "watchlist", label: "Watchlist", icon: Eye },
   { id: "settings", label: "Settings", icon: Settings },
 ];
 

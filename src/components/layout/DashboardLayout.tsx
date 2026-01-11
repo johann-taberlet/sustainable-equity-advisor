@@ -56,10 +56,12 @@ export function DashboardLayout({
       </aside>
 
       {/* Main content area - shrinks when right panel is open */}
-      <div className={cn(
-        "flex flex-1 flex-col overflow-hidden transition-all duration-300",
-        rightPanelOpen && "lg:mr-[400px]"
-      )}>
+      <div
+        className={cn(
+          "flex flex-1 flex-col overflow-hidden transition-all duration-300",
+          rightPanelOpen && "lg:mr-[400px]",
+        )}
+      >
         {/* Header */}
         <header
           data-testid="dashboard-header"
@@ -79,10 +81,7 @@ export function DashboardLayout({
         </header>
 
         {/* Main content */}
-        <main
-          data-testid="dashboard-main"
-          className="flex-1 overflow-auto p-4"
-        >
+        <main data-testid="dashboard-main" className="flex-1 overflow-auto p-4">
           {children}
         </main>
       </div>
@@ -92,7 +91,7 @@ export function DashboardLayout({
         <div
           className={cn(
             "fixed inset-y-0 right-0 z-40 w-full sm:w-[400px] transition-transform duration-300",
-            rightPanelOpen ? "translate-x-0" : "translate-x-full"
+            rightPanelOpen ? "translate-x-0" : "translate-x-full",
           )}
         >
           {rightPanel}

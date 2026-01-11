@@ -155,7 +155,7 @@ test.describe("Floating AI Panel", () => {
       const closeButton = page.getByTestId("ai-panel-close");
       await expect(closeButton).toHaveAttribute(
         "aria-label",
-        "Close AI assistant"
+        "Close AI assistant",
       );
     });
 

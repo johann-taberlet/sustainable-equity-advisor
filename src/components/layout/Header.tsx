@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronDown, User } from "lucide-react";
+import { ChevronDown, MessageSquare, User } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,6 +9,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
 
 interface Portfolio {
   id: string;
@@ -19,14 +20,20 @@ interface HeaderProps {
   portfolios?: Portfolio[];
   selectedPortfolioId?: string;
   onPortfolioChange?: (id: string) => void;
+  onAIChatToggle?: () => void;
+  isAIPanelOpen?: boolean;
 }
 
 export function Header({
   portfolios = [],
   selectedPortfolioId,
   onPortfolioChange,
+  onAIChatToggle,
+  isAIPanelOpen,
 }: HeaderProps) {
-  const selectedPortfolio = portfolios.find((p) => p.id === selectedPortfolioId);
+  const selectedPortfolio = portfolios.find(
+    (p) => p.id === selectedPortfolioId,
+  );
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -62,6 +69,28 @@ export function Header({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* AI Chat toggle */}
+        {onAIChatToggle && (
+          <Button
+            variant={isAIPanelOpen ? "default" : "ghost"}
+            size="icon"
+            onClick={onAIChatToggle}
+            data-testid="ai-chat-toggle"
+            aria-label={
+              isAIPanelOpen ? "Close AI assistant" : "Open AI assistant"
+            }
+            className={cn(
+              "relative",
+              isAIPanelOpen && "bg-primary text-primary-foreground",
+            )}
+          >
+            <MessageSquare className="h-5 w-5" />
+            {!isAIPanelOpen && (
+              <span className="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-green-500" />
+            )}
+          </Button>
+        )}
+
         <ThemeToggle />
 
         {/* User menu placeholder */}

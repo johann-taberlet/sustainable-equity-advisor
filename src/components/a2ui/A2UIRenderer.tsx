@@ -3,6 +3,8 @@
 import type { A2UIComponent } from "@/lib/a2ui/types";
 import { PortfolioSummaryCard } from "./PortfolioSummaryCard";
 import { ESGScoreGauge } from "./ESGScoreGauge";
+import { ESGRadarChart } from "./ESGRadarChart";
+import { ESGComparisonChart } from "./ESGComparisonChart";
 import { HoldingsList } from "./HoldingsList";
 import { HoldingCard } from "./HoldingCard";
 import { StockInfoCard } from "./StockInfoCard";
@@ -12,14 +14,35 @@ import type { ComponentType } from "react";
 
 // Component registry mapping A2UI component names to React components
 // Using 'unknown' cast to handle varying prop types safely
-const componentRegistry: Record<string, ComponentType<Record<string, unknown>>> = {
-  PortfolioSummaryCard: PortfolioSummaryCard as unknown as ComponentType<Record<string, unknown>>,
-  ESGScoreGauge: ESGScoreGauge as unknown as ComponentType<Record<string, unknown>>,
-  HoldingsList: HoldingsList as unknown as ComponentType<Record<string, unknown>>,
+const componentRegistry: Record<
+  string,
+  ComponentType<Record<string, unknown>>
+> = {
+  PortfolioSummaryCard: PortfolioSummaryCard as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  ESGScoreGauge: ESGScoreGauge as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  ESGRadarChart: ESGRadarChart as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  ESGComparisonChart: ESGComparisonChart as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  HoldingsList: HoldingsList as unknown as ComponentType<
+    Record<string, unknown>
+  >,
   HoldingCard: HoldingCard as unknown as ComponentType<Record<string, unknown>>,
-  StockInfoCard: StockInfoCard as unknown as ComponentType<Record<string, unknown>>,
-  ActionButton: ActionButton as unknown as ComponentType<Record<string, unknown>>,
-  ActionConfirmation: ActionConfirmation as unknown as ComponentType<Record<string, unknown>>,
+  StockInfoCard: StockInfoCard as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  ActionButton: ActionButton as unknown as ComponentType<
+    Record<string, unknown>
+  >,
+  ActionConfirmation: ActionConfirmation as unknown as ComponentType<
+    Record<string, unknown>
+  >,
 };
 
 interface A2UIRendererProps {
@@ -29,7 +52,10 @@ interface A2UIRendererProps {
 
 export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
   // Group consecutive ActionButtons together
-  const groupedComponents: Array<{ type: "single" | "button-group"; items: Array<{ component: typeof components[0]; index: number }> }> = [];
+  const groupedComponents: Array<{
+    type: "single" | "button-group";
+    items: Array<{ component: (typeof components)[0]; index: number }>;
+  }> = [];
 
   for (let i = 0; i < components.length; i++) {
     const component = components[i];
@@ -39,10 +65,16 @@ export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
       if (lastGroup?.type === "button-group") {
         lastGroup.items.push({ component, index: i });
       } else {
-        groupedComponents.push({ type: "button-group", items: [{ component, index: i }] });
+        groupedComponents.push({
+          type: "button-group",
+          items: [{ component, index: i }],
+        });
       }
     } else {
-      groupedComponents.push({ type: "single", items: [{ component, index: i }] });
+      groupedComponents.push({
+        type: "single",
+        items: [{ component, index: i }],
+      });
     }
   }
 
@@ -55,7 +87,11 @@ export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
               {group.items.map(({ component, index }) => {
                 const Component = componentRegistry[component.component];
                 return Component ? (
-                  <Component key={index} {...(component.props || {})} onAction={onAction} />
+                  <Component
+                    key={index}
+                    {...(component.props || {})}
+                    onAction={onAction}
+                  />
                 ) : null;
               })}
             </div>
@@ -77,7 +113,11 @@ export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
         }
 
         return (
-          <Component key={index} {...(component.props || {})} onAction={onAction} />
+          <Component
+            key={index}
+            {...(component.props || {})}
+            onAction={onAction}
+          />
         );
       })}
     </div>

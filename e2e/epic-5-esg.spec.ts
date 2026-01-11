@@ -26,7 +26,9 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
     });
 
     // Multiple holdings should have ESG scores
-    const esgScores = page.locator("[data-testid='esg-score'], [data-esg-score]");
+    const esgScores = page.locator(
+      "[data-testid='esg-score'], [data-esg-score]",
+    );
     const count = await esgScores.count();
     expect(count).toBeGreaterThanOrEqual(1);
   });
@@ -35,7 +37,10 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
     // Check that API call is made
     const apiCalls: string[] = [];
     page.on("request", (request) => {
-      if (request.url().includes("financialmodelingprep") || request.url().includes("esg")) {
+      if (
+        request.url().includes("financialmodelingprep") ||
+        request.url().includes("esg")
+      ) {
         apiCalls.push(request.url());
       }
     });
@@ -49,7 +54,8 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
     // Should have made ESG-related API call (or internal endpoint)
     // If using edge function, check for that
     const esgRelated = apiCalls.filter(
-      (url) => url.includes("esg") || url.includes("fmp") || url.includes("api")
+      (url) =>
+        url.includes("esg") || url.includes("fmp") || url.includes("api"),
     );
 
     // Either API call made OR data displayed from cache/mock
@@ -66,7 +72,9 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
       timeout: 15000,
     });
 
-    const esgScores = page.locator("[data-testid='esg-score'], [data-esg-score]");
+    const esgScores = page.locator(
+      "[data-testid='esg-score'], [data-esg-score]",
+    );
     const count = await esgScores.count();
 
     for (let i = 0; i < Math.min(count, 5); i++) {
@@ -83,21 +91,32 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
     // Go to chat and ask about a stock that might not have ESG data
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     await chatInput.fill("What is the ESG score for XYZFAKESYMBOL?");
     await sendButton.click();
 
-    await page.waitForSelector("[data-testid='assistant-message'], .assistant-message", {
-      timeout: 60000,
-    });
+    await page.waitForSelector(
+      "[data-testid='assistant-message'], .assistant-message",
+      {
+        timeout: 60000,
+      },
+    );
 
-    const response = page.locator("[data-testid='assistant-message'], .assistant-message").last();
+    const response = page
+      .locator("[data-testid='assistant-message'], .assistant-message")
+      .last();
     const text = await response.textContent();
 
     // Should handle gracefully (not crash, show N/A or explanation)
-    expect(text?.toLowerCase()).toMatch(/n\/a|not available|no data|couldn't find|unknown|not found/i);
+    expect(text?.toLowerCase()).toMatch(
+      /n\/a|not available|no data|couldn't find|unknown|not found/i,
+    );
   });
 
   // Task 5.3: E/S/G breakdown display
@@ -107,20 +126,32 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
 
     await page.waitForSelector(
       "[data-testid='esg-breakdown'], [data-testid='e-score'], [data-testid='s-score'], [data-testid='g-score']",
-      { timeout: 15000 }
+      { timeout: 15000 },
     );
 
     // Should show Environmental score
-    const eScore = page.locator("[data-testid='e-score'], [data-label='Environmental']");
-    const hasE = (await eScore.count()) > 0 || (await page.getByText(/environmental/i).count()) > 0;
+    const eScore = page.locator(
+      "[data-testid='e-score'], [data-label='Environmental']",
+    );
+    const hasE =
+      (await eScore.count()) > 0 ||
+      (await page.getByText(/environmental/i).count()) > 0;
 
     // Should show Social score
-    const sScore = page.locator("[data-testid='s-score'], [data-label='Social']");
-    const hasS = (await sScore.count()) > 0 || (await page.getByText(/social/i).count()) > 0;
+    const sScore = page.locator(
+      "[data-testid='s-score'], [data-label='Social']",
+    );
+    const hasS =
+      (await sScore.count()) > 0 ||
+      (await page.getByText(/social/i).count()) > 0;
 
     // Should show Governance score
-    const gScore = page.locator("[data-testid='g-score'], [data-label='Governance']");
-    const hasG = (await gScore.count()) > 0 || (await page.getByText(/governance/i).count()) > 0;
+    const gScore = page.locator(
+      "[data-testid='g-score'], [data-label='Governance']",
+    );
+    const hasG =
+      (await gScore.count()) > 0 ||
+      (await page.getByText(/governance/i).count()) > 0;
 
     expect(hasE && hasS && hasG).toBeTruthy();
   });
@@ -128,17 +159,26 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
   test("individual stock shows E/S/G breakdown", async ({ page }) => {
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     await chatInput.fill("Show me the ESG breakdown for Microsoft (MSFT)");
     await sendButton.click();
 
-    await page.waitForSelector("[data-testid='assistant-message'], .assistant-message", {
-      timeout: 60000,
-    });
+    await page.waitForSelector(
+      "[data-testid='assistant-message'], .assistant-message",
+      {
+        timeout: 60000,
+      },
+    );
 
-    const response = page.locator("[data-testid='assistant-message'], .assistant-message").last();
+    const response = page
+      .locator("[data-testid='assistant-message'], .assistant-message")
+      .last();
     const text = await response.textContent();
 
     // Should show E, S, G individually
@@ -148,18 +188,23 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
   test("ESG scores have visual indicators", async ({ page }) => {
     await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
 
-    await page.waitForSelector("[data-testid='esg-score'], [data-testid='esg-gauge']", {
-      timeout: 15000,
-    });
+    await page.waitForSelector(
+      "[data-testid='esg-score'], [data-testid='esg-gauge']",
+      {
+        timeout: 15000,
+      },
+    );
 
     // Check for visual elements (colors, progress bars, gauges)
     const visualIndicators = page.locator(
-      "[data-testid='esg-gauge'], .progress, [role='progressbar'], .gauge, svg[data-esg]"
+      "[data-testid='esg-gauge'], .progress, [role='progressbar'], .gauge, svg[data-esg]",
     );
     const hasVisual = (await visualIndicators.count()) > 0;
 
     // Or check for color-coded text
-    const coloredElements = page.locator("[data-testid='esg-score'][class*='text-'], [data-testid='esg-score'][class*='bg-']");
+    const coloredElements = page.locator(
+      "[data-testid='esg-score'][class*='text-'], [data-testid='esg-score'][class*='bg-']",
+    );
     const hasColor = (await coloredElements.count()) > 0;
 
     // Should have some visual representation

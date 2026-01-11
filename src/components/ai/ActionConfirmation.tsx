@@ -81,18 +81,12 @@ export function ActionToast({ message, success, onUndo }: ActionToastProps) {
   return (
     <div
       className={`flex items-center gap-2 rounded-lg px-4 py-3 shadow-lg ${
-        success
-          ? "bg-green-600 text-white"
-          : "bg-red-600 text-white"
+        success ? "bg-green-600 text-white" : "bg-red-600 text-white"
       }`}
       role="alert"
       data-testid="action-toast"
     >
-      {success ? (
-        <Check className="h-4 w-4" />
-      ) : (
-        <X className="h-4 w-4" />
-      )}
+      {success ? <Check className="h-4 w-4" /> : <X className="h-4 w-4" />}
       <span className="flex-1 text-sm">{message}</span>
       {onUndo && (
         <Button

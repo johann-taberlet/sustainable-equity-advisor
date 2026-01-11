@@ -3,17 +3,94 @@
     "name": "Demo Portfolio",
     "currency": "CHF",
     "holdings": [
-      { "symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "weight": 0.15, "sector": "Technology", "region": "US" },
-      { "symbol": "MSFT", "name": "Microsoft Corp.", "shares": 30, "weight": 0.12, "sector": "Technology", "region": "US" },
-      { "symbol": "NESN.SW", "name": "Nestlé S.A.", "shares": 40, "weight": 0.10, "sector": "Consumer Staples", "region": "Switzerland" },
-      { "symbol": "ASML", "name": "ASML Holding", "shares": 15, "weight": 0.10, "sector": "Technology", "region": "Netherlands" },
-      { "symbol": "VWS.CO", "name": "Vestas Wind Systems", "shares": 100, "weight": 0.08, "sector": "Renewables", "region": "Denmark" },
-      { "symbol": "NOVN.SW", "name": "Novartis AG", "shares": 35, "weight": 0.08, "sector": "Healthcare", "region": "Switzerland" },
-      { "symbol": "SU.PA", "name": "Schneider Electric", "shares": 25, "weight": 0.08, "sector": "Industrials", "region": "France" },
-      { "symbol": "TSM", "name": "Taiwan Semiconductor", "shares": 40, "weight": 0.08, "sector": "Technology", "region": "Taiwan" },
-      { "symbol": "ULVR.L", "name": "Unilever PLC", "shares": 60, "weight": 0.07, "sector": "Consumer Staples", "region": "UK" },
-      { "symbol": "ORSTED.CO", "name": "Ørsted A/S", "shares": 30, "weight": 0.07, "sector": "Utilities", "region": "Denmark" },
-      { "symbol": "FSLR", "name": "First Solar Inc.", "shares": 25, "weight": 0.07, "sector": "Renewables", "region": "US" }
+      {
+        "symbol": "AAPL",
+        "name": "Apple Inc.",
+        "shares": 50,
+        "weight": 0.15,
+        "sector": "Technology",
+        "region": "US"
+      },
+      {
+        "symbol": "MSFT",
+        "name": "Microsoft Corp.",
+        "shares": 30,
+        "weight": 0.12,
+        "sector": "Technology",
+        "region": "US"
+      },
+      {
+        "symbol": "NESN.SW",
+        "name": "Nestlé S.A.",
+        "shares": 40,
+        "weight": 0.1,
+        "sector": "Consumer Staples",
+        "region": "Switzerland"
+      },
+      {
+        "symbol": "ASML",
+        "name": "ASML Holding",
+        "shares": 15,
+        "weight": 0.1,
+        "sector": "Technology",
+        "region": "Netherlands"
+      },
+      {
+        "symbol": "VWS.CO",
+        "name": "Vestas Wind Systems",
+        "shares": 100,
+        "weight": 0.08,
+        "sector": "Renewables",
+        "region": "Denmark"
+      },
+      {
+        "symbol": "NOVN.SW",
+        "name": "Novartis AG",
+        "shares": 35,
+        "weight": 0.08,
+        "sector": "Healthcare",
+        "region": "Switzerland"
+      },
+      {
+        "symbol": "SU.PA",
+        "name": "Schneider Electric",
+        "shares": 25,
+        "weight": 0.08,
+        "sector": "Industrials",
+        "region": "France"
+      },
+      {
+        "symbol": "TSM",
+        "name": "Taiwan Semiconductor",
+        "shares": 40,
+        "weight": 0.08,
+        "sector": "Technology",
+        "region": "Taiwan"
+      },
+      {
+        "symbol": "ULVR.L",
+        "name": "Unilever PLC",
+        "shares": 60,
+        "weight": 0.07,
+        "sector": "Consumer Staples",
+        "region": "UK"
+      },
+      {
+        "symbol": "ORSTED.CO",
+        "name": "Ørsted A/S",
+        "shares": 30,
+        "weight": 0.07,
+        "sector": "Utilities",
+        "region": "Denmark"
+      },
+      {
+        "symbol": "FSLR",
+        "name": "First Solar Inc.",
+        "shares": 25,
+        "weight": 0.07,
+        "sector": "Renewables",
+        "region": "US"
+      }
     ]
   },
   "benchmarks": {

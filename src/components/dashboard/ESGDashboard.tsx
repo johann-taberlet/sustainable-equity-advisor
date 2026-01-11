@@ -1,7 +1,15 @@
 "use client";
 
 import { useMemo } from "react";
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  Cell,
+} from "recharts";
 import { Leaf, TrendingUp, TrendingDown } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
@@ -90,7 +98,10 @@ export function ESGDashboard({
             {/* Main score */}
             <div className="text-center sm:text-left">
               <div
-                className={cn("font-data text-5xl font-bold", getESGColorClass(portfolioScore))}
+                className={cn(
+                  "font-data text-5xl font-bold",
+                  getESGColorClass(portfolioScore),
+                )}
                 data-testid="portfolio-esg"
               >
                 {portfolioScore}
@@ -208,7 +219,12 @@ export function ESGDashboard({
                     <span className="font-medium">{h.symbol}</span>
                     <span className="ml-2 text-muted-foreground">{h.name}</span>
                   </div>
-                  <span className={cn("font-data font-medium", getESGColorClass(h.esgScore))}>
+                  <span
+                    className={cn(
+                      "font-data font-medium",
+                      getESGColorClass(h.esgScore),
+                    )}
+                  >
                     {h.esgScore}
                   </span>
                 </div>
@@ -232,7 +248,12 @@ export function ESGDashboard({
                     <span className="font-medium">{h.symbol}</span>
                     <span className="ml-2 text-muted-foreground">{h.name}</span>
                   </div>
-                  <span className={cn("font-data font-medium", getESGColorClass(h.esgScore))}>
+                  <span
+                    className={cn(
+                      "font-data font-medium",
+                      getESGColorClass(h.esgScore),
+                    )}
+                  >
                     {h.esgScore}
                   </span>
                 </div>

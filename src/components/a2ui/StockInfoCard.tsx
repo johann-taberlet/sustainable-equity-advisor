@@ -73,10 +73,15 @@ export function StockInfoCard({
           <div
             className={cn(
               "flex flex-col items-center justify-center rounded-md px-2 py-1 shrink-0",
-              getEsgBg(esgScore)
+              getEsgBg(esgScore),
             )}
           >
-            <span className={cn("text-lg font-bold leading-none", getEsgColor(esgScore))}>
+            <span
+              className={cn(
+                "text-lg font-bold leading-none",
+                getEsgColor(esgScore),
+              )}
+            >
               {esgScore}
             </span>
             <span className="text-[10px] text-muted-foreground">ESG</span>
@@ -87,17 +92,23 @@ export function StockInfoCard({
       {/* Price */}
       <div className="mt-3 flex items-baseline gap-3">
         <span className="text-2xl font-bold">{formattedPrice}</span>
-        <div className={cn(
-          "flex items-center gap-1 text-sm font-medium",
-          isPositive ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"
-        )}>
+        <div
+          className={cn(
+            "flex items-center gap-1 text-sm font-medium",
+            isPositive
+              ? "text-green-600 dark:text-green-400"
+              : "text-red-600 dark:text-red-400",
+          )}
+        >
           {isPositive ? (
             <TrendingUp className="h-4 w-4" />
           ) : (
             <TrendingDown className="h-4 w-4" />
           )}
           <span>
-            {isPositive ? "+" : ""}{change.toFixed(2)} ({isPositive ? "+" : ""}{changePercent.toFixed(2)}%)
+            {isPositive ? "+" : ""}
+            {change.toFixed(2)} ({isPositive ? "+" : ""}
+            {changePercent.toFixed(2)}%)
           </span>
         </div>
       </div>

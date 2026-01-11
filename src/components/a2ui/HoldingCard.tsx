@@ -46,10 +46,15 @@ export function HoldingCard({
           <div
             className={cn(
               "flex flex-col items-center justify-center rounded-md px-2 py-1 shrink-0",
-              getEsgBg(esgScore)
+              getEsgBg(esgScore),
             )}
           >
-            <span className={cn("text-lg font-bold leading-none", getEsgColor(esgScore))}>
+            <span
+              className={cn(
+                "text-lg font-bold leading-none",
+                getEsgColor(esgScore),
+              )}
+            >
               {esgScore}
             </span>
             <span className="text-[10px] text-muted-foreground">ESG</span>
@@ -57,7 +62,9 @@ export function HoldingCard({
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5">
               <span className="font-semibold">{symbol}</span>
-              <span className="text-muted-foreground text-sm truncate">{name}</span>
+              <span className="text-muted-foreground text-sm truncate">
+                {name}
+              </span>
             </div>
             <div className="flex items-baseline gap-3 text-sm">
               <span>

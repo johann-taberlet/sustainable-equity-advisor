@@ -19,7 +19,9 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
   // Acceptance: reCAPTCHA is loaded (invisible)
   test("reCAPTCHA v3 is integrated", async ({ page }) => {
     // Check for reCAPTCHA script
-    const recaptchaScript = page.locator("script[src*='recaptcha'], script[src*='grecaptcha']");
+    const recaptchaScript = page.locator(
+      "script[src*='recaptcha'], script[src*='grecaptcha']",
+    );
     const hasScript = (await recaptchaScript.count()) > 0;
 
     // Or check for grecaptcha object
@@ -40,13 +42,20 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     // Monitor network for reCAPTCHA verification
     const recaptchaRequests: string[] = [];
     page.on("request", (request) => {
-      if (request.url().includes("recaptcha") || request.url().includes("grecaptcha")) {
+      if (
+        request.url().includes("recaptcha") ||
+        request.url().includes("grecaptcha")
+      ) {
         recaptchaRequests.push(request.url());
       }
     });
 
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     await chatInput.fill("Test message");
     await sendButton.click();
@@ -55,7 +64,9 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     await page.waitForTimeout(2000);
 
     // Should have made reCAPTCHA request OR form has token field
-    const tokenField = page.locator("input[name*='captcha'], input[name*='recaptcha'], [data-recaptcha]");
+    const tokenField = page.locator(
+      "input[name*='captcha'], input[name*='recaptcha'], [data-recaptcha]",
+    );
     const hasToken = (await tokenField.count()) > 0;
 
     expect(recaptchaRequests.length > 0 || hasToken).toBeTruthy();
@@ -67,13 +78,16 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
     // Wait for chat to load
-    await page.waitForSelector("[data-testid='chat-content'], [data-testid='chat-input']", {
-      timeout: 10000,
-    });
+    await page.waitForSelector(
+      "[data-testid='chat-content'], [data-testid='chat-input']",
+      {
+        timeout: 10000,
+      },
+    );
 
     // Should show quota indicator
     const quotaIndicator = page.locator(
-      "[data-testid='quota'], [data-testid='messages-remaining'], [aria-label*='quota' i]"
+      "[data-testid='quota'], [data-testid='messages-remaining'], [aria-label*='quota' i]",
     );
 
     if ((await quotaIndicator.count()) > 0) {
@@ -85,7 +99,9 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     } else {
       // Alternative: check in footer or header
       const pageText = await page.locator("body").textContent();
-      const hasQuotaMention = /\d+\s*(messages?|remaining|left)/i.test(pageText || "");
+      const hasQuotaMention = /\d+\s*(messages?|remaining|left)/i.test(
+        pageText || "",
+      );
       expect(hasQuotaMention).toBeTruthy();
     }
   });
@@ -93,7 +109,9 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
   test("quota decreases after sending message", async ({ page }) => {
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
-    const quotaIndicator = page.locator("[data-testid='quota'], [data-testid='messages-remaining']");
+    const quotaIndicator = page.locator(
+      "[data-testid='quota'], [data-testid='messages-remaining']",
+    );
 
     // Get initial quota (if visible)
     let initialQuota = 20; // Default
@@ -102,16 +120,23 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
       initialQuota = parseInt(text?.match(/\d+/)?.[0] || "20");
     }
 
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     await chatInput.fill("Hello");
     await sendButton.click();
 
     // Wait for response
-    await page.waitForSelector("[data-testid='assistant-message'], .assistant-message", {
-      timeout: 60000,
-    });
+    await page.waitForSelector(
+      "[data-testid='assistant-message'], .assistant-message",
+      {
+        timeout: 60000,
+      },
+    );
 
     // Check quota decreased
     if ((await quotaIndicator.count()) > 0) {
@@ -128,7 +153,7 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
 
     // Check for quota warning styling/message capability
     const warningIndicator = page.locator(
-      "[data-testid='quota-warning'], [data-testid='quota'][class*='warning'], [aria-label*='low' i]"
+      "[data-testid='quota-warning'], [data-testid='quota'][class*='warning'], [aria-label*='low' i]",
     );
 
     // If quota is low, warning should be visible
@@ -136,7 +161,8 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     const warningExists = (await warningIndicator.count()) > 0;
 
     // Or check that app has quota-related UI at all
-    const hasQuotaUI = (await page.locator("[data-testid='quota']").count()) > 0;
+    const hasQuotaUI =
+      (await page.locator("[data-testid='quota']").count()) > 0;
 
     expect(warningExists || hasQuotaUI).toBeTruthy();
   });
@@ -148,8 +174,12 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
 
     // We can't easily trigger actual rate limiting in E2E
     // Instead, verify error handling UI exists
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     // Send a message and verify error doesn't break UI
     await chatInput.fill("Test");
@@ -174,7 +204,7 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
 
     // Common API key patterns
     const apiKeyPatterns = [
-      /sk-[a-zA-Z0-9]{20,}/,           // OpenRouter/OpenAI style
+      /sk-[a-zA-Z0-9]{20,}/, // OpenRouter/OpenAI style
       /OPENROUTER_API_KEY/,
       /FMP_API_KEY/,
       /api[_-]?key.*=.*[a-zA-Z0-9]{20,}/i,
@@ -188,23 +218,32 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
   test("session persists across page reloads", async ({ page }) => {
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
-    const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
-    const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
+    const chatInput = page
+      .getByTestId("chat-input")
+      .or(page.locator("textarea, input[type='text']").first());
+    const sendButton = page
+      .getByTestId("send-button")
+      .or(page.getByRole("button", { name: /send/i }));
 
     // Send a message
     await chatInput.fill("Remember this: the password is banana");
     await sendButton.click();
 
-    await page.waitForSelector("[data-testid='assistant-message'], .assistant-message", {
-      timeout: 60000,
-    });
+    await page.waitForSelector(
+      "[data-testid='assistant-message'], .assistant-message",
+      {
+        timeout: 60000,
+      },
+    );
 
     // Reload page
     await page.reload();
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
     // Check if session/quota state persisted
-    const quotaIndicator = page.locator("[data-testid='quota'], [data-testid='messages-remaining']");
+    const quotaIndicator = page.locator(
+      "[data-testid='quota'], [data-testid='messages-remaining']",
+    );
     if ((await quotaIndicator.count()) > 0) {
       const text = await quotaIndicator.first().textContent();
       const quota = parseInt(text?.match(/\d+/)?.[0] || "20");

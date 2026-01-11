@@ -67,7 +67,9 @@ test.describe("Epic 14: OpenRouter LLM Integration", () => {
   });
 
   // Task 14.4: A2UI JSON generation
-  test("LLM generates valid A2UI JSON for portfolio queries", async ({ page }) => {
+  test("LLM generates valid A2UI JSON for portfolio queries", async ({
+    page,
+  }) => {
     await page.goto("/");
     await page.getByRole("tab", { name: /chat|advisor/i }).click();
 
@@ -92,7 +94,10 @@ test.describe("Epic 14: OpenRouter LLM Integration", () => {
 
     // Either we have A2UI components OR the response contains portfolio data
     if (!hasA2UI) {
-      const messageText = await page.getByTestId("assistant-message").first().textContent();
+      const messageText = await page
+        .getByTestId("assistant-message")
+        .first()
+        .textContent();
       expect(messageText?.toLowerCase()).toMatch(/esg|score|portfolio/);
     }
   });
@@ -168,8 +173,10 @@ test.describe("Epic 14: OpenRouter LLM Integration", () => {
 
     // Wait for second response
     await page.waitForFunction(
-      () => document.querySelectorAll("[data-testid='assistant-message']").length >= 2,
-      { timeout: 30000 }
+      () =>
+        document.querySelectorAll("[data-testid='assistant-message']").length >=
+        2,
+      { timeout: 30000 },
     );
 
     // The response should reference the name (context maintained)

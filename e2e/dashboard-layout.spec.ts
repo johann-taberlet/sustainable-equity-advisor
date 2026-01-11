@@ -152,8 +152,12 @@ test.describe("Dashboard Layout", () => {
         await page.setViewportSize(viewport);
         await page.waitForTimeout(100);
 
-        const scrollWidth = await page.evaluate(() => document.body.scrollWidth);
-        const clientWidth = await page.evaluate(() => document.body.clientWidth);
+        const scrollWidth = await page.evaluate(
+          () => document.body.scrollWidth,
+        );
+        const clientWidth = await page.evaluate(
+          () => document.body.clientWidth,
+        );
 
         expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
       }

@@ -1,10 +1,24 @@
 "use client";
 
-import { Check, Plus, Minus, Filter, Bell, ArrowRight, TrendingUp } from "lucide-react";
+import {
+  Check,
+  Plus,
+  Minus,
+  Filter,
+  Bell,
+  ArrowRight,
+  TrendingUp,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface ActionConfirmationProps {
-  actionType: "add_holding" | "remove_holding" | "update_holding" | "filter_holdings" | "create_alert" | "navigate";
+  actionType:
+    | "add_holding"
+    | "remove_holding"
+    | "update_holding"
+    | "filter_holdings"
+    | "create_alert"
+    | "navigate";
   symbol?: string;
   shares?: number;
   name?: string;
@@ -28,8 +42,10 @@ export function ActionConfirmation({
   const isRemove = actionType === "remove_holding";
 
   const getBgColor = () => {
-    if (isAdd) return "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800";
-    if (isRemove) return "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800";
+    if (isAdd)
+      return "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800";
+    if (isRemove)
+      return "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800";
     return "bg-card border-border";
   };
 
@@ -67,7 +83,9 @@ export function ActionConfirmation({
   const getTitle = () => {
     switch (actionType) {
       case "add_holding":
-        return previousShares && previousShares > 0 ? "Position Updated" : "Position Added";
+        return previousShares && previousShares > 0
+          ? "Position Updated"
+          : "Position Added";
       case "remove_holding":
         return "Position Removed";
       case "update_holding":
@@ -108,19 +126,16 @@ export function ActionConfirmation({
   return (
     <div
       data-testid="action-confirmation"
-      className={cn(
-        "mt-3 rounded-lg border p-3 shadow-sm",
-        getBgColor()
-      )}
+      className={cn("mt-3 rounded-lg border p-3 shadow-sm", getBgColor())}
     >
       <div className="flex items-center gap-3">
-        <div className={cn(
-          "flex items-center justify-center rounded-full p-2",
-          getIconBg()
-        )}>
-          <span className={getIconColor()}>
-            {getIcon()}
-          </span>
+        <div
+          className={cn(
+            "flex items-center justify-center rounded-full p-2",
+            getIconBg(),
+          )}
+        >
+          <span className={getIconColor()}>{getIcon()}</span>
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

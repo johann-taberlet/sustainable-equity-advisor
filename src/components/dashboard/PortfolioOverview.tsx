@@ -118,7 +118,10 @@ export function PortfolioOverview({
         </CardHeader>
         <CardContent>
           <div
-            className={cn("font-data text-2xl font-bold", getESGColorClass(esgScore))}
+            className={cn(
+              "font-data text-2xl font-bold",
+              getESGColorClass(esgScore),
+            )}
             data-testid="portfolio-esg"
           >
             {esgScore}/100
@@ -127,7 +130,12 @@ export function PortfolioOverview({
             {environmentalScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Environmental</span>
-                <span className={cn("font-data", getESGColorClass(environmentalScore))}>
+                <span
+                  className={cn(
+                    "font-data",
+                    getESGColorClass(environmentalScore),
+                  )}
+                >
                   {environmentalScore}
                 </span>
               </div>
@@ -135,7 +143,9 @@ export function PortfolioOverview({
             {socialScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Social</span>
-                <span className={cn("font-data", getESGColorClass(socialScore))}>
+                <span
+                  className={cn("font-data", getESGColorClass(socialScore))}
+                >
                   {socialScore}
                 </span>
               </div>
@@ -143,7 +153,9 @@ export function PortfolioOverview({
             {governanceScore !== undefined && (
               <div className="flex items-center justify-between text-xs">
                 <span className="text-muted-foreground">Governance</span>
-                <span className={cn("font-data", getESGColorClass(governanceScore))}>
+                <span
+                  className={cn("font-data", getESGColorClass(governanceScore))}
+                >
                   {governanceScore}
                 </span>
               </div>

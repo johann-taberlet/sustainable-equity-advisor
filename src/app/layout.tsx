@@ -30,7 +30,9 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   // reCAPTCHA site key (use test key for demo, replace with real key in production)
-  const recaptchaSiteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY || "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
+  const recaptchaSiteKey =
+    process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY ||
+    "6LeIxAcTAAAAAJcZVRqyHh71UMIEGNQ_MXjiZKhI";
 
   return (
     <html lang="en" suppressHydrationWarning>

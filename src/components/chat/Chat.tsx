@@ -20,8 +20,18 @@ function generateActionText(action: ParsedAction): string {
       return `Removing ${payload.symbol} from your portfolio.`;
     case "update_holding":
       return `Updating ${payload.symbol} to ${payload.shares} shares.`;
+    case "create_alert":
+      return `Alert created for ${payload.symbol}: ${payload.alertType} at ${payload.value}.`;
+    case "filter_holdings":
+      return `Filtering holdings${payload.sector ? ` by ${payload.sector}` : ""}${payload.minEsg ? ` with ESG ≥ ${payload.minEsg}` : ""}.`;
+    case "navigate":
+      return `Navigating to ${payload.section}.`;
+    case "highlight":
+      return `Highlighting ${(payload.symbols as string[])?.join(", ")}.`;
+    case "show_comparison":
+      return `Comparing ${(payload.symbols as string[])?.join(" vs ")}.`;
     default:
-      return `Executing ${action.type}...`;
+      return `Action: ${action.type.replace(/_/g, " ")}`;
   }
 }
 
@@ -172,8 +182,9 @@ export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProp
 
       // Generate fallback text if AI only returned JSON without text
       let displayContent = data.message;
-      if (hasPortfolioActions && !parsed.text?.trim()) {
-        const actionTexts = parsed.actions!.filter(a => portfolioActionTypes.includes(a.type)).map(generateActionText);
+      const hasAnyActions = parsed.actions && parsed.actions.length > 0;
+      if (hasAnyActions && !parsed.text?.trim()) {
+        const actionTexts = parsed.actions!.map(generateActionText);
         displayContent = actionTexts.join("\n") + "\n" + data.message;
       }
 

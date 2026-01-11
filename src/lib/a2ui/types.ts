@@ -46,6 +46,7 @@ export interface HoldingProps {
 
 export interface HoldingsListProps {
   holdings: HoldingProps[];
+  currency?: string;
 }
 
 export interface ActionButtonProps {

@@ -5,6 +5,7 @@ import { ChatMessage } from "./ChatMessage";
 import { ChatInput, type ChatInputHandle } from "./ChatInput";
 import { parseA2UIMessage, type ParsedAction } from "@/lib/a2ui/parser";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
+import { useCurrency } from "@/lib/currency";
 
 const MAX_MESSAGES_PER_SESSION = 20;
 const QUOTA_STORAGE_KEY = "chat_quota";
@@ -70,8 +71,6 @@ interface ChatProps {
   onPortfolioUpdate?: (action: PortfolioAction) => void;
   getHoldingShares?: (symbol: string) => number;
   holdings?: PortfolioHolding[];
-  currency?: string;
-  exchangeRate?: number;
 }
 
 interface ConversationMessage {
@@ -134,9 +133,9 @@ export function Chat({
   onPortfolioUpdate,
   getHoldingShares,
   holdings,
-  currency = "CHF",
-  exchangeRate = 1,
 }: ChatProps) {
+  // Get currency from context - reactive to changes
+  const { currency, exchangeRate } = useCurrency();
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([]);
   const [conversationHistory, setConversationHistory] = useState<
     ConversationMessage[]

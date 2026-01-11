@@ -76,9 +76,9 @@ You can include A2UI JSON blocks to render rich UI components. Embed JSON in you
    Example: {"surfaceUpdate": {"component": "ESGScoreGauge", "props": {"score": 78, "environmental": 82, "social": 75, "governance": 77}}}
 
 3. **HoldingsList** - Show ALL portfolio holdings (NEVER truncate or limit - show EVERY holding)
-   Props: holdings (array of {symbol, name, shares, value, esgScore})
-   IMPORTANT: Include ALL holdings from get_portfolio tool result, not just some of them!
-   Example: {"surfaceUpdate": {"component": "HoldingsList", "props": {"holdings": [{"symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "value": 9500, "esgScore": 72}]}}}
+   Props: holdings (array of {symbol, name, shares, value, esgScore}), currency (string - from get_portfolio summary)
+   IMPORTANT: Include ALL holdings from get_portfolio tool result, not just some of them! Use the currency from summary.currency!
+   Example: {"surfaceUpdate": {"component": "HoldingsList", "props": {"holdings": [{"symbol": "AAPL", "name": "Apple Inc.", "shares": 50, "value": 9500, "esgScore": 72}], "currency": "EUR"}}}
 
 4. **HoldingCard** - Show details for a single holding THE USER OWNS (use after get_holding tool)
    Props: symbol (string), name (string), shares (number), value (number), esgScore (number), currency (string, optional)

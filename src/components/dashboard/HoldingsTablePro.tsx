@@ -32,6 +32,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 
 export interface HoldingRow {
   symbol: string;
@@ -49,8 +50,6 @@ type SortDirection = "asc" | "desc";
 
 interface HoldingsTableProProps {
   holdings: HoldingRow[];
-  currency?: string;
-  exchangeRate?: number;
   onRemove?: (symbol: string) => void;
   highlightedSymbols?: string[];
 }
@@ -64,13 +63,11 @@ function getESGColorClass(score: number): string {
 
 export function HoldingsTablePro({
   holdings,
-  currency = "CHF",
-  exchangeRate = 1,
   onRemove,
   highlightedSymbols = [],
 }: HoldingsTableProProps) {
-  // Helper to convert value to display currency
-  const toDisplayCurrency = (amountUSD: number) => amountUSD * exchangeRate;
+  // Get currency from context
+  const { currency, convertAmount } = useCurrency();
   const [sortKey, setSortKey] = useState<SortKey>("value");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
@@ -255,7 +252,7 @@ export function HoldingsTablePro({
                       : currency === "EUR"
                         ? "€"
                         : "CHF"}{" "}
-                    {toDisplayCurrency(holding.value).toLocaleString("en-CH", {
+                    {convertAmount(holding.value).toLocaleString("en-CH", {
                       maximumFractionDigits: 0,
                     })}
                   </TableCell>

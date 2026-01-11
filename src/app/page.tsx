@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useEffect } from "react";
 import {
   Cell,
   Legend,
@@ -21,11 +21,7 @@ import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { ESGScreening } from "@/components/dashboard/ESGScreening";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import {
-  fetchExchangeRates,
-  formatCurrency,
-  type Currency,
-} from "@/lib/currency";
+import { useCurrency } from "@/lib/currency";
 
 interface ESGData {
   symbol: string;
@@ -89,25 +85,9 @@ export default function Home() {
   );
   const [holdings, setHoldings] = useState<Holding[]>([]); // Values stored in USD
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
-  const [currency, setCurrency] = useState<Currency>("CHF");
-  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({
-    USD: 1,
-    CHF: 0.88,
-    EUR: 0.92,
-  });
 
-  // Fetch exchange rates on mount
-  useEffect(() => {
-    fetchExchangeRates().then((rates) => {
-      setExchangeRates(rates.rates);
-    });
-  }, []);
-
-  // Helper to convert USD to display currency
-  const toDisplayCurrency = useCallback(
-    (amountUSD: number) => amountUSD * (exchangeRates[currency] || 1),
-    [exchangeRates, currency],
-  );
+  // Currency from context (reactive to changes)
+  const { currency, formatAmount, convertAmount } = useCurrency();
 
   // Fetch ESG data when holdings change
   useEffect(() => {
@@ -333,7 +313,7 @@ export default function Home() {
                     className="text-3xl font-bold"
                     data-testid="portfolio-value"
                   >
-                    {formatCurrency(toDisplayCurrency(totalValue), currency)}
+                    {formatAmount(totalValue)}
                   </div>
                   <div
                     data-testid="portfolio-change"
@@ -341,10 +321,7 @@ export default function Home() {
                   >
                     {dailyChange >= 0 ? "+" : ""}
                     {dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}
-                    {formatCurrency(
-                      toDisplayCurrency(dailyChangeValue),
-                      currency,
-                    )}
+                    {formatAmount(dailyChangeValue)}
                     )
                   </div>
                 </div>
@@ -353,10 +330,8 @@ export default function Home() {
 
             <PerformanceChart
               data={performanceData}
-              currency={currency}
               showBenchmark
               benchmarkLabel="MSCI ESG Leaders"
-              exchangeRate={exchangeRates[currency] || 1}
             />
 
             <Card data-testid="allocation-chart">
@@ -389,7 +364,7 @@ export default function Home() {
                       </Pie>
                       <Tooltip
                         formatter={(value: number) => [
-                          formatCurrency(toDisplayCurrency(value), currency),
+                          formatAmount(value),
                           "Value",
                         ]}
                       />
@@ -485,8 +460,6 @@ export default function Home() {
                 <HoldingsTablePro
                   holdings={holdings}
                   onRemove={handleRemoveHolding}
-                  currency={currency}
-                  exchangeRate={exchangeRates[currency] || 1}
                 />
               </CardContent>
             </Card>
@@ -583,8 +556,6 @@ export default function Home() {
           portfolios={portfolios}
           selectedPortfolioId={selectedPortfolioId}
           onPortfolioChange={setSelectedPortfolioId}
-          currency={currency}
-          onCurrencyChange={setCurrency}
           onAIChatToggle={() => setAiPanelOpen((prev) => !prev)}
           isAIPanelOpen={aiPanelOpen}
         />
@@ -596,8 +567,6 @@ export default function Home() {
               onPortfolioUpdate={handlePortfolioUpdate}
               getHoldingShares={getHoldingShares}
               holdings={holdings}
-              currency={currency}
-              exchangeRate={exchangeRates[currency] || 1}
             />
           </div>
         </AIPanel>

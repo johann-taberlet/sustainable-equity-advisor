@@ -11,7 +11,16 @@ import {
 } from "@/components/ui/table";
 import type { HoldingsListProps } from "@/lib/a2ui/types";
 
-export function HoldingsList({ holdings }: HoldingsListProps) {
+function formatValue(value: number, currency: string): string {
+  return new Intl.NumberFormat("en-CH", {
+    style: "currency",
+    currency: currency,
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+export function HoldingsList({ holdings, currency = "CHF" }: HoldingsListProps) {
   return (
     <Card data-a2ui="HoldingsList" data-testid="holdings-list">
       <CardHeader className="pb-2">
@@ -37,7 +46,7 @@ export function HoldingsList({ holdings }: HoldingsListProps) {
                 <TableCell>{holding.name}</TableCell>
                 <TableCell className="text-right">{holding.shares}</TableCell>
                 <TableCell className="text-right">
-                  CHF {holding.value.toLocaleString("en-CH")}
+                  {formatValue(holding.value, currency)}
                 </TableCell>
                 <TableCell className="text-right">
                   {holding.esgScore ?? "-"}

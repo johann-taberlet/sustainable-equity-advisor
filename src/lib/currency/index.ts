@@ -5,6 +5,9 @@
 
 export type Currency = "CHF" | "USD" | "EUR";
 
+// Re-export context and hook
+export { CurrencyProvider, useCurrency } from "./context";
+
 export const CURRENCIES: { value: Currency; label: string; symbol: string }[] =
   [
     { value: "CHF", label: "CHF", symbol: "CHF" },

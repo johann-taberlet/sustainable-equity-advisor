@@ -25,11 +25,12 @@ function getEsgBg(score: number): string {
   return "bg-red-100 dark:bg-red-900/30";
 }
 
-function formatMarketCap(value: number): string {
-  if (value >= 1e12) return `${(value / 1e12).toFixed(1)}T`;
-  if (value >= 1e9) return `${(value / 1e9).toFixed(1)}B`;
-  if (value >= 1e6) return `${(value / 1e6).toFixed(1)}M`;
-  return value.toLocaleString();
+function formatMarketCap(value: number, currency: string): string {
+  const symbol = currency === "EUR" ? "€" : currency === "CHF" ? "CHF " : "$";
+  if (value >= 1e12) return `${symbol}${(value / 1e12).toFixed(1)}T`;
+  if (value >= 1e9) return `${symbol}${(value / 1e9).toFixed(1)}B`;
+  if (value >= 1e6) return `${symbol}${(value / 1e6).toFixed(1)}M`;
+  return `${symbol}${value.toLocaleString()}`;
 }
 
 export function StockInfoCard({
@@ -117,7 +118,7 @@ export function StockInfoCard({
       {marketCap && marketCap > 0 && (
         <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
           <Building2 className="h-3.5 w-3.5" />
-          <span>Market Cap: ${formatMarketCap(marketCap)}</span>
+          <span>Market Cap: {formatMarketCap(marketCap, currency)}</span>
         </div>
       )}
     </div>

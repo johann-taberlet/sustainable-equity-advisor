@@ -13,6 +13,7 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 
 interface PerformanceDataPoint {
   date: string;
@@ -22,8 +23,6 @@ interface PerformanceDataPoint {
 
 interface PerformanceChartProps {
   data: PerformanceDataPoint[];
-  currency?: string;
-  exchangeRate?: number;
   showBenchmark?: boolean;
   benchmarkLabel?: string;
 }
@@ -68,15 +67,13 @@ function formatDate(dateStr: string, range: TimeRange): string {
 
 export function PerformanceChart({
   data,
-  currency = "CHF",
-  exchangeRate = 1,
   showBenchmark = false,
   benchmarkLabel = "Benchmark",
 }: PerformanceChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>("1M");
 
-  // Helper to convert value to display currency
-  const toDisplayCurrency = (amountUSD: number) => amountUSD * exchangeRate;
+  // Get currency from context
+  const { currency, convertAmount } = useCurrency();
 
   // Get currency symbol
   const currencySymbol =
@@ -150,7 +147,7 @@ export function PerformanceChart({
             <span className="font-data text-sm text-muted-foreground">
               ({isPositive ? "+" : ""}
               {currencySymbol}{" "}
-              {toDisplayCurrency(change).toLocaleString("en-CH", {
+              {convertAmount(change).toLocaleString("en-CH", {
                 maximumFractionDigits: 0,
               })}
               )
@@ -194,7 +191,7 @@ export function PerformanceChart({
                 tickLine={false}
                 tick={{ fontSize: 11 }}
                 tickFormatter={(value) =>
-                  `${currencySymbol} ${toDisplayCurrency(value).toLocaleString("en-CH", { maximumFractionDigits: 0 })}`
+                  `${currencySymbol} ${convertAmount(value).toLocaleString("en-CH", { maximumFractionDigits: 0 })}`
                 }
                 width={90}
               />
@@ -209,7 +206,7 @@ export function PerformanceChart({
                       </p>
                       <p className="font-data text-sm font-medium">
                         {currencySymbol}{" "}
-                        {toDisplayCurrency(point.value).toLocaleString(
+                        {convertAmount(point.value).toLocaleString(
                           "en-CH",
                           { maximumFractionDigits: 0 },
                         )}
@@ -217,7 +214,7 @@ export function PerformanceChart({
                       {showBenchmark && point.benchmark !== undefined && (
                         <p className="text-xs text-muted-foreground">
                           {benchmarkLabel}: {currencySymbol}{" "}
-                          {toDisplayCurrency(point.benchmark).toLocaleString(
+                          {convertAmount(point.benchmark).toLocaleString(
                             "en-CH",
                             { maximumFractionDigits: 0 },
                           )}

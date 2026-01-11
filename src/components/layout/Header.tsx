@@ -10,7 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { CURRENCIES, type Currency } from "@/lib/currency";
+import { CURRENCIES, useCurrency } from "@/lib/currency";
 
 function ChatbotIcon({ className }: { className?: string }) {
   return (
@@ -59,8 +59,6 @@ interface HeaderProps {
   portfolios?: Portfolio[];
   selectedPortfolioId?: string;
   onPortfolioChange?: (id: string) => void;
-  currency?: Currency;
-  onCurrencyChange?: (currency: Currency) => void;
   onAIChatToggle?: () => void;
   isAIPanelOpen?: boolean;
 }
@@ -69,11 +67,10 @@ export function Header({
   portfolios = [],
   selectedPortfolioId,
   onPortfolioChange,
-  currency = "CHF",
-  onCurrencyChange,
   onAIChatToggle,
   isAIPanelOpen,
 }: HeaderProps) {
+  const { currency, setCurrency } = useCurrency();
   const selectedPortfolio = portfolios.find(
     (p) => p.id === selectedPortfolioId,
   );
@@ -110,32 +107,30 @@ export function Header({
         )}
 
         {/* Currency selector */}
-        {onCurrencyChange && (
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="gap-2 min-w-[80px]"
-                data-testid="currency-selector"
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button
+              variant="outline"
+              className="gap-2 min-w-[80px]"
+              data-testid="currency-selector"
+            >
+              <span>{currency}</span>
+              <ChevronDown className="h-4 w-4" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="start">
+            {CURRENCIES.map((curr) => (
+              <DropdownMenuItem
+                key={curr.value}
+                onClick={() => setCurrency(curr.value)}
+                data-testid={`currency-option-${curr.value}`}
+                className={cn(currency === curr.value && "bg-accent")}
               >
-                <span>{currency}</span>
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start">
-              {CURRENCIES.map((curr) => (
-                <DropdownMenuItem
-                  key={curr.value}
-                  onClick={() => onCurrencyChange(curr.value)}
-                  data-testid={`currency-option-${curr.value}`}
-                  className={cn(currency === curr.value && "bg-accent")}
-                >
-                  {curr.label}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        )}
+                {curr.label}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
       {/* Right: Actions */}

@@ -16,8 +16,23 @@ export interface PortfolioAction {
   name?: string;
 }
 
+export interface ActionResult {
+  actionType: "add_holding" | "remove_holding" | "update_holding";
+  symbol: string;
+  shares?: number;
+  name?: string;
+  previousShares?: number;
+  newTotal?: number;
+}
+
+interface ExtendedChatMessage extends ChatMessageType {
+  actionPending?: boolean;
+  actionResult?: ActionResult;
+}
+
 interface ChatProps {
   onPortfolioUpdate?: (action: PortfolioAction) => void;
+  getHoldingShares?: (symbol: string) => number;
 }
 
 interface ConversationMessage {
@@ -49,8 +64,8 @@ function saveQuotaToStorage(remaining: number): void {
   );
 }
 
-export function Chat({ onPortfolioUpdate }: ChatProps) {
-  const [messages, setMessages] = useState<ChatMessageType[]>([]);
+export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
+  const [messages, setMessages] = useState<ExtendedChatMessage[]>([]);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [messagesRemaining, setMessagesRemaining] = useState(MAX_MESSAGES_PER_SESSION);
@@ -101,14 +116,21 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
 
       const data = await response.json();
 
-      const assistantMessage: ChatMessageType = {
-        id: crypto.randomUUID(),
+      // Parse AI response to extract actions
+      const parsed = parseA2UIMessage(data.message);
+      const hasActions = parsed.actions && parsed.actions.length > 0;
+
+      const messageId = crypto.randomUUID();
+      const assistantMessage: ExtendedChatMessage = {
+        id: messageId,
         role: "assistant",
         content: data.message,
         timestamp: new Date(),
+        actionPending: hasActions,
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
+      setIsLoading(false);
 
       // Update conversation history for context
       setConversationHistory((prev) => [
@@ -122,21 +144,32 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
       setMessagesRemaining(newQuota);
       saveQuotaToStorage(newQuota);
 
-      // Parse AI response to extract actions
-      const parsed = parseA2UIMessage(data.message);
-
       // Execute any portfolio actions from the AI response
-      if (parsed.actions) {
+      if (parsed.actions && parsed.actions.length > 0) {
+        // Small delay to show the spinner
+        await new Promise((resolve) => setTimeout(resolve, 500));
+
         for (const action of parsed.actions) {
+          let actionResult: ActionResult | undefined;
+
           if (action.type === "add_holding") {
             const payload = action.payload as { symbol?: string; shares?: number; name?: string };
             if (payload.symbol) {
+              const previousShares = getHoldingShares?.(payload.symbol) || 0;
               onPortfolioUpdate?.({
                 type: "add_holding",
                 symbol: payload.symbol,
                 shares: payload.shares || 1,
                 name: payload.name,
               });
+              actionResult = {
+                actionType: "add_holding",
+                symbol: payload.symbol,
+                shares: payload.shares || 1,
+                name: payload.name,
+                previousShares,
+                newTotal: previousShares + (payload.shares || 1),
+              };
             }
           } else if (action.type === "remove_holding") {
             const payload = action.payload as { symbol?: string };
@@ -145,6 +178,10 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
                 type: "remove_holding",
                 symbol: payload.symbol,
               });
+              actionResult = {
+                actionType: "remove_holding",
+                symbol: payload.symbol,
+              };
             }
           } else if (action.type === "update_holding") {
             const payload = action.payload as { symbol?: string; shares?: number };
@@ -154,14 +191,30 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
                 symbol: payload.symbol,
                 shares: payload.shares,
               });
+              actionResult = {
+                actionType: "update_holding",
+                symbol: payload.symbol,
+                shares: payload.shares,
+              };
             }
+          }
+
+          // Update message with action result
+          if (actionResult) {
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === messageId
+                  ? { ...msg, actionPending: false, actionResult }
+                  : msg
+              )
+            );
           }
         }
       }
     } catch (error) {
       console.error("Chat error:", error);
 
-      const errorMessage: ChatMessageType = {
+      const errorMessage: ExtendedChatMessage = {
         id: crypto.randomUUID(),
         role: "assistant",
         content: "I apologize, but I encountered an error processing your request. Please try again.",
@@ -169,7 +222,6 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
       };
 
       setMessages((prev) => [...prev, errorMessage]);
-    } finally {
       setIsLoading(false);
     }
   }, [conversationHistory, messagesRemaining, onPortfolioUpdate]);

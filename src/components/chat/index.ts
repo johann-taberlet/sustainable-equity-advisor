@@ -1,3 +1,3 @@
-export { Chat, type PortfolioAction } from "./Chat";
+export { Chat, type PortfolioAction, type ActionResult } from "./Chat";
 export { ChatMessage } from "./ChatMessage";
 export { ChatInput } from "./ChatInput";

@@ -1,13 +1,18 @@
 "use client";
 
 import ReactMarkdown from "react-markdown";
+import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseA2UIMessage } from "@/lib/a2ui";
-import { A2UIRenderer } from "@/components/a2ui";
+import { A2UIRenderer, ActionConfirmation } from "@/components/a2ui";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat/types";
+import type { ActionResult } from "./Chat";
 
 interface ChatMessageProps {
-  message: ChatMessageType;
+  message: ChatMessageType & {
+    actionPending?: boolean;
+    actionResult?: ActionResult;
+  };
   onAction?: (action: string) => void;
 }
 
@@ -51,6 +56,15 @@ export function ChatMessage({ message, onAction }: ChatMessageProps) {
           <div className="mt-2">
             <A2UIRenderer components={parsed.components} onAction={onAction} />
           </div>
+        )}
+        {message.actionPending && (
+          <div className="flex items-center gap-2 mt-2 text-sm text-muted-foreground" data-testid="action-pending">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span>Updating portfolio...</span>
+          </div>
+        )}
+        {message.actionResult && (
+          <ActionConfirmation {...message.actionResult} />
         )}
       </div>
     </div>

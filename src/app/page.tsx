@@ -183,6 +183,11 @@ export default function Home() {
     }
   }, []);
 
+  const getHoldingShares = useCallback((symbol: string): number => {
+    const holding = holdings.find((h) => h.symbol === symbol);
+    return holding?.shares || 0;
+  }, [holdings]);
+
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
   const dailyChange = 1.85;
   const dailyChangeValue = totalValue * (dailyChange / 100);
@@ -543,7 +548,7 @@ export default function Home() {
       {/* AI Panel */}
       <AIPanel isOpen={aiPanelOpen} onClose={() => setAiPanelOpen(false)}>
         <div data-testid="chat-content" className="h-full">
-          <Chat onPortfolioUpdate={handlePortfolioUpdate} />
+          <Chat onPortfolioUpdate={handlePortfolioUpdate} getHoldingShares={getHoldingShares} />
         </div>
       </AIPanel>
     </DashboardLayout>

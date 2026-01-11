@@ -70,6 +70,8 @@ interface ChatProps {
   onPortfolioUpdate?: (action: PortfolioAction) => void;
   getHoldingShares?: (symbol: string) => number;
   holdings?: PortfolioHolding[];
+  currency?: string;
+  exchangeRate?: number;
 }
 
 interface ConversationMessage {
@@ -132,6 +134,8 @@ export function Chat({
   onPortfolioUpdate,
   getHoldingShares,
   holdings,
+  currency = "CHF",
+  exchangeRate = 1,
 }: ChatProps) {
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([]);
   const [conversationHistory, setConversationHistory] = useState<
@@ -190,6 +194,8 @@ export function Chat({
             message: content,
             history: conversationHistory,
             holdings: holdings,
+            currency: currency,
+            exchangeRate: exchangeRate,
           }),
         });
 

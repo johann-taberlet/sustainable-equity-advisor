@@ -51,10 +51,6 @@ interface Holding {
   sector: string;
 }
 
-// Benchmark data (MSCI ESG Leaders Index mock)
-const benchmarkESGScore = 72;
-const benchmarkDailyChange = 1.2;
-
 // Sector colors for allocation chart
 const SECTOR_COLORS: Record<string, string> = {
   Technology: "#3b82f6",
@@ -355,39 +351,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Benchmark Comparison</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div data-testid="benchmark" className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">
-                      vs MSCI ESG Leaders Index
-                    </span>
-                    <span
-                      className={`font-semibold ${(dailyChange - benchmarkDailyChange) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                    >
-                      {dailyChange - benchmarkDailyChange >= 0 ? "+" : ""}
-                      {(dailyChange - benchmarkDailyChange).toFixed(2)}%
-                      outperformance
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-muted-foreground">
-                      ESG Score vs Benchmark
-                    </span>
-                    <span
-                      className={`font-semibold ${(avgESGScore - benchmarkESGScore) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                    >
-                      {avgESGScore - benchmarkESGScore >= 0 ? "+" : ""}
-                      {avgESGScore - benchmarkESGScore} points
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
             <PerformanceChart
               data={performanceData}
               currency={currency}
@@ -633,6 +596,8 @@ export default function Home() {
               onPortfolioUpdate={handlePortfolioUpdate}
               getHoldingShares={getHoldingShares}
               holdings={holdings}
+              currency={currency}
+              exchangeRate={exchangeRates[currency] || 1}
             />
           </div>
         </AIPanel>

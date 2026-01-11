@@ -234,9 +234,13 @@ async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
   holdings: PortfolioHolding[],
+  currency: string = "CHF",
+  exchangeRate: number = 1,
 ): Promise<{ result: unknown; toolUsed: string }> {
   if (toolName === "get_portfolio") {
-    const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
+    // Holdings values are stored in USD, convert to display currency
+    const totalValueUSD = holdings.reduce((sum, h) => sum + h.value, 0);
+    const totalValue = totalValueUSD * exchangeRate;
     const avgEsg =
       holdings.length > 0
         ? Math.round(
@@ -251,7 +255,7 @@ async function executeTool(
           symbol: h.symbol,
           name: h.name,
           shares: h.shares,
-          value: h.value,
+          value: h.value * exchangeRate, // Convert to display currency
           esgScore: h.esgScore,
           sector: h.sector,
         })),
@@ -259,7 +263,7 @@ async function executeTool(
           totalHoldings: holdings.length,
           totalValue,
           averageEsgScore: avgEsg,
-          currency: "CHF",
+          currency,
         },
       },
     };
@@ -286,7 +290,8 @@ async function executeTool(
         symbol: holding.symbol,
         name: holding.name,
         shares: holding.shares,
-        value: holding.value,
+        value: holding.value * exchangeRate, // Convert to display currency
+        currency,
         esgScore: holding.esgScore,
         sector: holding.sector,
       },
@@ -331,6 +336,8 @@ export async function callOpenRouter(
   messages: OpenRouterMessage[],
   apiKey: string,
   holdings: PortfolioHolding[] = [],
+  currency: string = "CHF",
+  exchangeRate: number = 1,
 ): Promise<{ content: string; toolsUsed: string[] }> {
   // Build the conversation with system prompt
   const conversationMessages: Array<{
@@ -408,6 +415,8 @@ export async function callOpenRouter(
           toolCall.function.name,
           args,
           holdings,
+          currency,
+          exchangeRate,
         );
 
         toolsUsed.push(toolUsed);

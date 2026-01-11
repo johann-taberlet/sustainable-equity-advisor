@@ -9,12 +9,14 @@ interface ChatRequestBody {
   message: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
   holdings?: PortfolioHolding[];
+  currency?: string;
+  exchangeRate?: number;
 }
 
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequestBody = await request.json();
-    const { message, history = [], holdings = [] } = body;
+    const { message, history = [], holdings = [], currency = "CHF", exchangeRate = 1 } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -53,7 +55,7 @@ export async function POST(request: NextRequest) {
         { role: "user" as const, content: message },
       ];
 
-      const result = await callOpenRouter(messages, apiKey, holdings);
+      const result = await callOpenRouter(messages, apiKey, holdings, currency, exchangeRate);
 
       return NextResponse.json({
         message: result.content,

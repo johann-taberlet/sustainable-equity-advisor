@@ -312,6 +312,7 @@ export default function Home() {
                 <CardTitle>Holdings</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table data-testid="holdings-list">
                   <TableHeader>
                     <TableRow>
@@ -348,6 +349,7 @@ export default function Home() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </div>
@@ -399,6 +401,7 @@ export default function Home() {
                 <CardTitle>Holdings ESG Scores</CardTitle>
               </CardHeader>
               <CardContent>
+                <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -433,6 +436,7 @@ export default function Home() {
                     ))}
                   </TableBody>
                 </Table>
+                </div>
               </CardContent>
             </Card>
           </div>

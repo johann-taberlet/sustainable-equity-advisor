@@ -309,17 +309,18 @@ async function executeTool(
       };
     }
 
+    // Convert USD prices to display currency
     return {
       toolUsed: "get_stock_info",
       result: {
         symbol: stockInfo.symbol,
         name: stockInfo.name,
-        price: stockInfo.price,
-        change: stockInfo.change,
+        price: stockInfo.price * exchangeRate,
+        change: stockInfo.change * exchangeRate,
         changePercent: stockInfo.changePercent,
-        currency: stockInfo.currency,
+        currency: currency,
         exchange: stockInfo.exchange,
-        marketCap: stockInfo.marketCap,
+        marketCap: stockInfo.marketCap * exchangeRate,
         esgScore: stockInfo.esgScore,
       },
     };

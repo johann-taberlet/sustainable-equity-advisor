@@ -536,6 +536,14 @@ export default function Home() {
           onPortfolioChange={setSelectedPortfolioId}
         />
       }
+      rightPanel={
+        <AIPanel isOpen={aiPanelOpen} onClose={() => setAiPanelOpen(false)}>
+          <div data-testid="chat-content" className="h-full">
+            <Chat onPortfolioUpdate={handlePortfolioUpdate} getHoldingShares={getHoldingShares} holdings={holdings} />
+          </div>
+        </AIPanel>
+      }
+      rightPanelOpen={aiPanelOpen}
     >
       {renderContent()}
 
@@ -544,13 +552,6 @@ export default function Home() {
         onClick={() => setAiPanelOpen(true)}
         isOpen={aiPanelOpen}
       />
-
-      {/* AI Panel */}
-      <AIPanel isOpen={aiPanelOpen} onClose={() => setAiPanelOpen(false)}>
-        <div data-testid="chat-content" className="h-full">
-          <Chat onPortfolioUpdate={handlePortfolioUpdate} getHoldingShares={getHoldingShares} holdings={holdings} />
-        </div>
-      </AIPanel>
     </DashboardLayout>
   );
 }

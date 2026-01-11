@@ -9,12 +9,16 @@ interface DashboardLayoutProps {
   sidebar: ReactNode;
   header: ReactNode;
   children: ReactNode;
+  rightPanel?: ReactNode;
+  rightPanelOpen?: boolean;
 }
 
 export function DashboardLayout({
   sidebar,
   header,
   children,
+  rightPanel,
+  rightPanelOpen = false,
 }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
@@ -51,8 +55,11 @@ export function DashboardLayout({
         {sidebar}
       </aside>
 
-      {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
+      {/* Main content area - shrinks when right panel is open */}
+      <div className={cn(
+        "flex flex-1 flex-col overflow-hidden transition-all duration-300",
+        rightPanelOpen && "lg:mr-[400px]"
+      )}>
         {/* Header */}
         <header
           data-testid="dashboard-header"
@@ -79,6 +86,18 @@ export function DashboardLayout({
           {children}
         </main>
       </div>
+
+      {/* Right Panel (AI Chat) - fixed but content pushes away */}
+      {rightPanel && (
+        <div
+          className={cn(
+            "fixed inset-y-0 right-0 z-40 w-full sm:w-[400px] transition-transform duration-300",
+            rightPanelOpen ? "translate-x-0" : "translate-x-full"
+          )}
+        >
+          {rightPanel}
+        </div>
+      )}
     </div>
   );
 }

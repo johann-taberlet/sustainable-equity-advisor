@@ -26,6 +26,10 @@ export async function POST(request: NextRequest) {
     // Require OpenRouter API key
     const apiKey = process.env.OPENROUTER_API_KEY;
 
+    // Debug: log key presence and first few chars
+    console.log("API Key present:", !!apiKey);
+    console.log("API Key prefix:", apiKey?.substring(0, 10) + "...");
+
     if (!apiKey) {
       console.error("OPENROUTER_API_KEY is not set");
       return NextResponse.json(

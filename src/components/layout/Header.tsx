@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { CURRENCIES, type Currency } from "@/lib/currency";
 
 function ChatbotIcon({ className }: { className?: string }) {
   return (
@@ -21,12 +22,30 @@ function ChatbotIcon({ className }: { className?: string }) {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      <rect x="4" y="6" width="16" height="14" rx="4" stroke="currentColor" strokeWidth="2"/>
-      <circle cx="9" cy="11" r="1.5" fill="currentColor"/>
-      <circle cx="15" cy="11" r="1.5" fill="currentColor"/>
-      <path d="M12 6V3" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      <circle cx="12" cy="2" r="1" fill="currentColor"/>
-      <path d="M9 16H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+      <rect
+        x="4"
+        y="6"
+        width="16"
+        height="14"
+        rx="4"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <circle cx="9" cy="11" r="1.5" fill="currentColor" />
+      <circle cx="15" cy="11" r="1.5" fill="currentColor" />
+      <path
+        d="M12 6V3"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="2" r="1" fill="currentColor" />
+      <path
+        d="M9 16H15"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
     </svg>
   );
 }
@@ -40,6 +59,8 @@ interface HeaderProps {
   portfolios?: Portfolio[];
   selectedPortfolioId?: string;
   onPortfolioChange?: (id: string) => void;
+  currency?: Currency;
+  onCurrencyChange?: (currency: Currency) => void;
   onAIChatToggle?: () => void;
   isAIPanelOpen?: boolean;
 }
@@ -48,6 +69,8 @@ export function Header({
   portfolios = [],
   selectedPortfolioId,
   onPortfolioChange,
+  currency = "CHF",
+  onCurrencyChange,
   onAIChatToggle,
   isAIPanelOpen,
 }: HeaderProps) {
@@ -58,7 +81,7 @@ export function Header({
   return (
     <div className="flex flex-1 items-center justify-between">
       {/* Left: Breadcrumb / Section title */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-center gap-2">
         {/* Portfolio selector */}
         {portfolios.length > 0 && (
           <DropdownMenu>
@@ -80,6 +103,34 @@ export function Header({
                   data-testid={`portfolio-option-${portfolio.id}`}
                 >
                   {portfolio.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        )}
+
+        {/* Currency selector */}
+        {onCurrencyChange && (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                className="gap-2 min-w-[80px]"
+                data-testid="currency-selector"
+              >
+                <span>{currency}</span>
+                <ChevronDown className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start">
+              {CURRENCIES.map((curr) => (
+                <DropdownMenuItem
+                  key={curr.value}
+                  onClick={() => onCurrencyChange(curr.value)}
+                  data-testid={`currency-option-${curr.value}`}
+                  className={cn(currency === curr.value && "bg-accent")}
+                >
+                  {curr.label}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuContent>

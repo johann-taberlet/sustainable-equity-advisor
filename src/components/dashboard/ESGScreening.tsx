@@ -26,9 +26,16 @@ import {
   getAvailableSectors,
   type CuratedESGData,
 } from "@/lib/esg/curated-data";
+import { AddStockModal } from "./AddStockModal";
 
 interface ESGScreeningProps {
-  onAddToPortfolio?: (symbol: string) => void;
+  onAddToPortfolio?: (
+    symbol: string,
+    shares: number,
+    price: number,
+    name: string,
+    sector: string,
+  ) => void;
 }
 
 function getESGBadgeVariant(
@@ -52,8 +59,33 @@ export function ESGScreening({ onAddToPortfolio }: ESGScreeningProps) {
   const [sortBy, setSortBy] = useState<
     "esg" | "environmental" | "social" | "governance"
   >("esg");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedStock, setSelectedStock] = useState<{
+    symbol: string;
+    name: string;
+    sector: string;
+  } | null>(null);
 
   const sectors = useMemo(() => getAvailableSectors(), []);
+
+  const handleAddClick = (stock: CuratedESGData) => {
+    setSelectedStock({
+      symbol: stock.symbol,
+      name: stock.companyName,
+      sector: stock.sector,
+    });
+    setModalOpen(true);
+  };
+
+  const handleConfirmAdd = (
+    symbol: string,
+    shares: number,
+    price: number,
+    name: string,
+    sector: string,
+  ) => {
+    onAddToPortfolio?.(symbol, shares, price, name, sector);
+  };
 
   const filteredStocks = useMemo(() => {
     let stocks = Object.values(CURATED_ESG_DATA);
@@ -213,7 +245,7 @@ export function ESGScreening({ onAddToPortfolio }: ESGScreeningProps) {
                           <Button
                             size="sm"
                             variant="ghost"
-                            onClick={() => onAddToPortfolio(stock.symbol)}
+                            onClick={() => handleAddClick(stock)}
                           >
                             Add
                           </Button>
@@ -241,6 +273,13 @@ export function ESGScreening({ onAddToPortfolio }: ESGScreeningProps) {
           </p>
         </CardContent>
       </Card>
+
+      <AddStockModal
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+        stock={selectedStock}
+        onConfirm={handleConfirmAdd}
+      />
     </div>
   );
 }

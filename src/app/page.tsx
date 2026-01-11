@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
 } from "recharts";
+import { toast } from "sonner";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Header } from "@/components/layout/Header";
 import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
@@ -21,13 +22,10 @@ import { ESGScreening } from "@/components/dashboard/ESGScreening";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  fetchExchangeRates,
+  formatCurrency,
+  type Currency,
+} from "@/lib/currency";
 
 interface ESGData {
   symbol: string;
@@ -93,8 +91,27 @@ export default function Home() {
   const [selectedPortfolioId, setSelectedPortfolioId] = useState(
     portfolios[0].id,
   );
-  const [holdings, setHoldings] = useState<Holding[]>([]);
+  const [holdings, setHoldings] = useState<Holding[]>([]); // Values stored in USD
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [currency, setCurrency] = useState<Currency>("CHF");
+  const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({
+    USD: 1,
+    CHF: 0.88,
+    EUR: 0.92,
+  });
+
+  // Fetch exchange rates on mount
+  useEffect(() => {
+    fetchExchangeRates().then((rates) => {
+      setExchangeRates(rates.rates);
+    });
+  }, []);
+
+  // Helper to convert USD to display currency
+  const toDisplayCurrency = useCallback(
+    (amountUSD: number) => amountUSD * (exchangeRates[currency] || 1),
+    [exchangeRates, currency],
+  );
 
   // Fetch ESG data when holdings change
   useEffect(() => {
@@ -132,7 +149,7 @@ export default function Home() {
     fetchESGData();
   }, [holdings.length]);
 
-  // Fetch real stock price from API
+  // Fetch real stock price from API (returns USD)
   const fetchStockPrice = useCallback(
     async (symbol: string): Promise<{ price: number; name: string } | null> => {
       try {
@@ -141,10 +158,9 @@ export default function Home() {
         );
         if (!response.ok) return null;
         const data = await response.json();
-        // Convert USD to CHF (approximate rate)
-        const usdToChf = 0.88;
+        // Keep price in USD (base currency for storage)
         return {
-          price: data.price * usdToChf,
+          price: data.price,
           name: data.name || symbol,
         };
       } catch (error) {
@@ -321,17 +337,18 @@ export default function Home() {
                     className="text-3xl font-bold"
                     data-testid="portfolio-value"
                   >
-                    CHF {totalValue.toLocaleString("en-CH")}
+                    {formatCurrency(toDisplayCurrency(totalValue), currency)}
                   </div>
                   <div
                     data-testid="portfolio-change"
                     className={`text-lg font-semibold ${dailyChange >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
                   >
                     {dailyChange >= 0 ? "+" : ""}
-                    {dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}CHF{" "}
-                    {dailyChangeValue.toLocaleString("en-CH", {
-                      maximumFractionDigits: 0,
-                    })}
+                    {dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}
+                    {formatCurrency(
+                      toDisplayCurrency(dailyChangeValue),
+                      currency,
+                    )}
                     )
                   </div>
                 </div>
@@ -373,9 +390,10 @@ export default function Home() {
 
             <PerformanceChart
               data={performanceData}
-              currency="CHF"
+              currency={currency}
               showBenchmark
               benchmarkLabel="MSCI ESG Leaders"
+              exchangeRate={exchangeRates[currency] || 1}
             />
 
             <Card data-testid="allocation-chart">
@@ -408,7 +426,7 @@ export default function Home() {
                       </Pie>
                       <Tooltip
                         formatter={(value: number) => [
-                          `CHF ${value.toLocaleString("en-CH")}`,
+                          formatCurrency(toDisplayCurrency(value), currency),
                           "Value",
                         ]}
                       />
@@ -504,7 +522,8 @@ export default function Home() {
                 <HoldingsTablePro
                   holdings={holdings}
                   onRemove={handleRemoveHolding}
-                  currency="CHF"
+                  currency={currency}
+                  exchangeRate={exchangeRates[currency] || 1}
                 />
               </CardContent>
             </Card>
@@ -528,12 +547,43 @@ export default function Home() {
         return (
           <div data-testid="screening-content">
             <ESGScreening
-              onAddToPortfolio={(symbol) => {
-                handlePortfolioUpdate({
-                  type: "add_holding",
-                  symbol,
-                  shares: 1,
-                });
+              onAddToPortfolio={(symbol, shares, price, name, sector) => {
+                // Check if already in portfolio
+                const existing = holdings.find((h) => h.symbol === symbol);
+                if (existing) {
+                  // Add to existing position
+                  const pricePerShare = existing.value / existing.shares;
+                  setHoldings((prev) =>
+                    prev.map((h) =>
+                      h.symbol === symbol
+                        ? {
+                            ...h,
+                            shares: h.shares + shares,
+                            value: (h.shares + shares) * pricePerShare,
+                          }
+                        : h,
+                    ),
+                  );
+                  toast.success(
+                    `Added ${shares} share${shares > 1 ? "s" : ""} of ${symbol} to existing position`,
+                  );
+                } else {
+                  // Add new holding with provided data
+                  setHoldings((prev) => [
+                    ...prev,
+                    {
+                      symbol,
+                      name,
+                      shares,
+                      value: shares * price,
+                      esgScore: 75, // Will be updated by ESG fetch effect
+                      sector,
+                    },
+                  ]);
+                  toast.success(
+                    `Added ${shares} share${shares > 1 ? "s" : ""} of ${symbol} to portfolio`,
+                  );
+                }
               }}
             />
           </div>
@@ -570,6 +620,8 @@ export default function Home() {
           portfolios={portfolios}
           selectedPortfolioId={selectedPortfolioId}
           onPortfolioChange={setSelectedPortfolioId}
+          currency={currency}
+          onCurrencyChange={setCurrency}
           onAIChatToggle={() => setAiPanelOpen((prev) => !prev)}
           isAIPanelOpen={aiPanelOpen}
         />

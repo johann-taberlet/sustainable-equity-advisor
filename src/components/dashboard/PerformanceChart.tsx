@@ -23,6 +23,7 @@ interface PerformanceDataPoint {
 interface PerformanceChartProps {
   data: PerformanceDataPoint[];
   currency?: string;
+  exchangeRate?: number;
   showBenchmark?: boolean;
   benchmarkLabel?: string;
 }
@@ -68,10 +69,18 @@ function formatDate(dateStr: string, range: TimeRange): string {
 export function PerformanceChart({
   data,
   currency = "CHF",
+  exchangeRate = 1,
   showBenchmark = false,
   benchmarkLabel = "Benchmark",
 }: PerformanceChartProps) {
   const [timeRange, setTimeRange] = useState<TimeRange>("1M");
+
+  // Helper to convert value to display currency
+  const toDisplayCurrency = (amountUSD: number) => amountUSD * exchangeRate;
+
+  // Get currency symbol
+  const currencySymbol =
+    currency === "USD" ? "$" : currency === "EUR" ? "€" : "CHF";
 
   const filteredData = useMemo(() => {
     if (data.length === 0) return [];
@@ -140,7 +149,11 @@ export function PerformanceChart({
             </span>
             <span className="font-data text-sm text-muted-foreground">
               ({isPositive ? "+" : ""}
-              {currency} {change.toLocaleString("en-CH")})
+              {currencySymbol}{" "}
+              {toDisplayCurrency(change).toLocaleString("en-CH", {
+                maximumFractionDigits: 0,
+              })}
+              )
             </span>
           </div>
         </div>
@@ -181,7 +194,7 @@ export function PerformanceChart({
                 tickLine={false}
                 tick={{ fontSize: 11 }}
                 tickFormatter={(value) =>
-                  `${currency} ${value.toLocaleString("en-CH")}`
+                  `${currencySymbol} ${toDisplayCurrency(value).toLocaleString("en-CH", { maximumFractionDigits: 0 })}`
                 }
                 width={90}
               />
@@ -195,12 +208,19 @@ export function PerformanceChart({
                         {point.date}
                       </p>
                       <p className="font-data text-sm font-medium">
-                        {currency} {point.value.toLocaleString("en-CH")}
+                        {currencySymbol}{" "}
+                        {toDisplayCurrency(point.value).toLocaleString(
+                          "en-CH",
+                          { maximumFractionDigits: 0 },
+                        )}
                       </p>
                       {showBenchmark && point.benchmark !== undefined && (
                         <p className="text-xs text-muted-foreground">
-                          {benchmarkLabel}: {currency}{" "}
-                          {point.benchmark.toLocaleString("en-CH")}
+                          {benchmarkLabel}: {currencySymbol}{" "}
+                          {toDisplayCurrency(point.benchmark).toLocaleString(
+                            "en-CH",
+                            { maximumFractionDigits: 0 },
+                          )}
                         </p>
                       )}
                     </div>

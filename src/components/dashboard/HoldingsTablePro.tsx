@@ -50,6 +50,7 @@ type SortDirection = "asc" | "desc";
 interface HoldingsTableProProps {
   holdings: HoldingRow[];
   currency?: string;
+  exchangeRate?: number;
   onRemove?: (symbol: string) => void;
   highlightedSymbols?: string[];
 }
@@ -64,9 +65,12 @@ function getESGColorClass(score: number): string {
 export function HoldingsTablePro({
   holdings,
   currency = "CHF",
+  exchangeRate = 1,
   onRemove,
   highlightedSymbols = [],
 }: HoldingsTableProProps) {
+  // Helper to convert value to display currency
+  const toDisplayCurrency = (amountUSD: number) => amountUSD * exchangeRate;
   const [sortKey, setSortKey] = useState<SortKey>("value");
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
@@ -246,7 +250,14 @@ export function HoldingsTablePro({
                     {holding.shares}
                   </TableCell>
                   <TableCell className="font-data text-right">
-                    {currency} {holding.value.toLocaleString("en-CH")}
+                    {currency === "USD"
+                      ? "$"
+                      : currency === "EUR"
+                        ? "€"
+                        : "CHF"}{" "}
+                    {toDisplayCurrency(holding.value).toLocaleString("en-CH", {
+                      maximumFractionDigits: 0,
+                    })}
                   </TableCell>
                   <TableCell className="font-data text-right">
                     {totalValue > 0

@@ -1,0 +1,252 @@
+"use client";
+
+import { useState, useMemo } from "react";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Tooltip,
+  CartesianGrid,
+} from "recharts";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
+
+interface PerformanceDataPoint {
+  date: string;
+  value: number;
+  benchmark?: number;
+}
+
+interface PerformanceChartProps {
+  data: PerformanceDataPoint[];
+  currency?: string;
+  showBenchmark?: boolean;
+  benchmarkLabel?: string;
+}
+
+type TimeRange = "1D" | "1W" | "1M" | "3M" | "1Y" | "ALL";
+
+const TIME_RANGES: TimeRange[] = ["1D", "1W", "1M", "3M", "1Y", "ALL"];
+
+function getTimeRangeDays(range: TimeRange): number {
+  switch (range) {
+    case "1D":
+      return 1;
+    case "1W":
+      return 7;
+    case "1M":
+      return 30;
+    case "3M":
+      return 90;
+    case "1Y":
+      return 365;
+    case "ALL":
+      return Infinity;
+  }
+}
+
+function formatDate(dateStr: string, range: TimeRange): string {
+  const date = new Date(dateStr);
+  if (range === "1D") {
+    return date.toLocaleTimeString("en-CH", {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+  if (range === "1W" || range === "1M") {
+    return date.toLocaleDateString("en-CH", { day: "2-digit", month: "short" });
+  }
+  return date.toLocaleDateString("en-CH", {
+    month: "short",
+    year: "2-digit",
+  });
+}
+
+export function PerformanceChart({
+  data,
+  currency = "CHF",
+  showBenchmark = false,
+  benchmarkLabel = "Benchmark",
+}: PerformanceChartProps) {
+  const [timeRange, setTimeRange] = useState<TimeRange>("1M");
+
+  const filteredData = useMemo(() => {
+    if (data.length === 0) return [];
+
+    const days = getTimeRangeDays(timeRange);
+    if (days === Infinity) return data;
+
+    const cutoffDate = new Date();
+    cutoffDate.setDate(cutoffDate.getDate() - days);
+
+    return data.filter((d) => new Date(d.date) >= cutoffDate);
+  }, [data, timeRange]);
+
+  const formattedData = useMemo(
+    () =>
+      filteredData.map((d) => ({
+        ...d,
+        formattedDate: formatDate(d.date, timeRange),
+      })),
+    [filteredData, timeRange],
+  );
+
+  const { change, changePercent, isPositive } = useMemo(() => {
+    if (filteredData.length < 2) {
+      return { change: 0, changePercent: 0, isPositive: true };
+    }
+    const first = filteredData[0].value;
+    const last = filteredData[filteredData.length - 1].value;
+    const ch = last - first;
+    return {
+      change: ch,
+      changePercent: (ch / first) * 100,
+      isPositive: ch >= 0,
+    };
+  }, [filteredData]);
+
+  const domain = useMemo(() => {
+    if (filteredData.length === 0) return [0, 100];
+    const values = filteredData.flatMap((d) =>
+      showBenchmark && d.benchmark !== undefined
+        ? [d.value, d.benchmark]
+        : [d.value],
+    );
+    const min = Math.min(...values);
+    const max = Math.max(...values);
+    const padding = (max - min) * 0.1;
+    return [min - padding, max + padding];
+  }, [filteredData, showBenchmark]);
+
+  return (
+    <Card data-testid="performance-chart">
+      <CardHeader className="flex flex-row items-center justify-between pb-2">
+        <div>
+          <CardTitle>Performance</CardTitle>
+          <div className="mt-1 flex items-baseline gap-2">
+            <span
+              className={cn(
+                "text-lg font-semibold",
+                isPositive
+                  ? "text-green-600 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400",
+              )}
+            >
+              {isPositive ? "+" : ""}
+              {changePercent.toFixed(2)}%
+            </span>
+            <span className="text-sm text-muted-foreground">
+              ({isPositive ? "+" : ""}
+              {currency} {change.toLocaleString("en-CH")})
+            </span>
+          </div>
+        </div>
+        <div className="flex gap-1">
+          {TIME_RANGES.map((range) => (
+            <Button
+              key={range}
+              size="sm"
+              variant={timeRange === range ? "default" : "ghost"}
+              className="h-7 px-2 text-xs"
+              onClick={() => setTimeRange(range)}
+              data-testid={`range-${range}`}
+            >
+              {range}
+            </Button>
+          ))}
+        </div>
+      </CardHeader>
+      <CardContent>
+        <div className="h-72">
+          <ResponsiveContainer width="100%" height="100%">
+            <LineChart data={formattedData}>
+              <CartesianGrid
+                strokeDasharray="3 3"
+                className="stroke-muted"
+                vertical={false}
+              />
+              <XAxis
+                dataKey="formattedDate"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11 }}
+                interval="preserveStartEnd"
+              />
+              <YAxis
+                domain={domain}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fontSize: 11 }}
+                tickFormatter={(value) =>
+                  `${currency} ${value.toLocaleString("en-CH")}`
+                }
+                width={90}
+              />
+              <Tooltip
+                content={({ active, payload }) => {
+                  if (!active || !payload || payload.length === 0) return null;
+                  const point = payload[0].payload;
+                  return (
+                    <div className="rounded-lg border bg-background p-2 shadow-sm">
+                      <p className="text-xs text-muted-foreground">
+                        {point.date}
+                      </p>
+                      <p className="text-sm font-medium">
+                        {currency} {point.value.toLocaleString("en-CH")}
+                      </p>
+                      {showBenchmark && point.benchmark !== undefined && (
+                        <p className="text-xs text-muted-foreground">
+                          {benchmarkLabel}: {currency}{" "}
+                          {point.benchmark.toLocaleString("en-CH")}
+                        </p>
+                      )}
+                    </div>
+                  );
+                }}
+              />
+              <Line
+                type="monotone"
+                dataKey="value"
+                stroke={isPositive ? "#22c55e" : "#ef4444"}
+                strokeWidth={2}
+                dot={false}
+                animationDuration={500}
+              />
+              {showBenchmark && (
+                <Line
+                  type="monotone"
+                  dataKey="benchmark"
+                  stroke="#6b7280"
+                  strokeWidth={1}
+                  strokeDasharray="4 4"
+                  dot={false}
+                  animationDuration={500}
+                />
+              )}
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+        {showBenchmark && (
+          <div className="mt-2 flex items-center justify-center gap-4 text-xs text-muted-foreground">
+            <div className="flex items-center gap-1">
+              <div
+                className={cn(
+                  "h-0.5 w-4",
+                  isPositive ? "bg-green-500" : "bg-red-500",
+                )}
+              />
+              <span>Portfolio</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <div className="h-0.5 w-4 border-t-2 border-dashed border-gray-500" />
+              <span>{benchmarkLabel}</span>
+            </div>
+          </div>
+        )}
+      </CardContent>
+    </Card>
+  );
+}

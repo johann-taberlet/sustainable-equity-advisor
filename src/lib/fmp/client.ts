@@ -135,7 +135,13 @@ export async function fetchESGData(symbol: string): Promise<ESGData | null> {
     const response = await fetch(url, { next: { revalidate: 86400 } });
 
     if (!response.ok) {
-      // ESG endpoint may require paid plan
+      // ESG endpoint may require paid plan or symbol not found
+      // Fall back to curated data
+      const curatedData = getCuratedData(symbol);
+      if (curatedData) {
+        setCachedESGData(symbol, curatedData);
+        return curatedData;
+      }
       return null;
     }
 

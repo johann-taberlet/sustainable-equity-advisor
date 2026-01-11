@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useCallback, useEffect, useMemo } from "react";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { MessageSquare, PieChart as PieChartIcon, Search, TrendingUp } from "lucide-react";
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { Cell, Legend, Pie, PieChart, ResponsiveContainer, Tooltip } from "recharts";
+import { DashboardLayout } from "@/components/layout/DashboardLayout";
+import { Header } from "@/components/layout/Header";
+import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
 import { Chat } from "@/components/chat";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
 import {
   Table,
   TableBody,
@@ -15,7 +16,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
 
 interface ESGData {
   symbol: string;
@@ -85,11 +85,17 @@ function getESGBgClass(score: number): string {
   return "bg-red-500";
 }
 
-export default function Home() {
-  const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
-  const [esgDataLoaded, setEsgDataLoaded] = useState(false);
+// Demo portfolio for selector
+const portfolios = [
+  { id: "00000000-0000-0000-0000-000000000001", name: "Demo Portfolio" },
+];
 
-  // Fetch ESG data from API on mount and when holdings change
+export default function Home() {
+  const [activeSection, setActiveSection] = useState<NavigationSection>("dashboard");
+  const [selectedPortfolioId, setSelectedPortfolioId] = useState(portfolios[0].id);
+  const [holdings, setHoldings] = useState<Holding[]>(initialHoldings);
+
+  // Fetch ESG data from API on mount
   useEffect(() => {
     const fetchESGData = async () => {
       const symbols = holdings.map((h) => h.symbol).join(",");
@@ -110,13 +116,11 @@ export default function Home() {
                 };
               }
               return holding;
-            })
+            }),
           );
-          setEsgDataLoaded(true);
         }
       } catch (error) {
         console.error("Error fetching ESG data:", error);
-        setEsgDataLoaded(true); // Mark as loaded even on error to show current data
       }
     };
 
@@ -124,7 +128,6 @@ export default function Home() {
   }, []);
 
   const handlePortfolioUpdate = useCallback((data?: { symbol?: string; action?: string }) => {
-    // Handle portfolio updates via chat
     if (data?.symbol === "GOOGL" || data?.action === "add-googl") {
       setHoldings((prev) => {
         if (prev.some((h) => h.symbol === "GOOGL")) {
@@ -138,7 +141,6 @@ export default function Home() {
     } else if (data?.action === "remove-aapl") {
       setHoldings((prev) => prev.filter((h) => h.symbol !== "AAPL"));
     } else {
-      // Default: Add AAPL if not present
       setHoldings((prev) => {
         if (prev.some((h) => h.symbol === "AAPL")) {
           return prev;
@@ -152,26 +154,22 @@ export default function Home() {
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
-
-  // Calculate daily change (mock for demo)
-  const dailyChange = 1.85; // percentage
+  const dailyChange = 1.85;
   const dailyChangeValue = totalValue * (dailyChange / 100);
 
-  // Calculate aggregate ESG scores
   const avgESGScore = holdings.length > 0
     ? Math.round(holdings.reduce((sum, h) => sum + h.esgScore, 0) / holdings.length)
     : 0;
-  const avgEnvironmental = holdings.length > 0 && holdings.some(h => h.environmentalScore)
-    ? Math.round(holdings.reduce((sum, h) => sum + (h.environmentalScore || 0), 0) / holdings.filter(h => h.environmentalScore).length)
+  const avgEnvironmental = holdings.length > 0 && holdings.some((h) => h.environmentalScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.environmentalScore || 0), 0) / holdings.filter((h) => h.environmentalScore).length)
     : 0;
-  const avgSocial = holdings.length > 0 && holdings.some(h => h.socialScore)
-    ? Math.round(holdings.reduce((sum, h) => sum + (h.socialScore || 0), 0) / holdings.filter(h => h.socialScore).length)
+  const avgSocial = holdings.length > 0 && holdings.some((h) => h.socialScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.socialScore || 0), 0) / holdings.filter((h) => h.socialScore).length)
     : 0;
-  const avgGovernance = holdings.length > 0 && holdings.some(h => h.governanceScore)
-    ? Math.round(holdings.reduce((sum, h) => sum + (h.governanceScore || 0), 0) / holdings.filter(h => h.governanceScore).length)
+  const avgGovernance = holdings.length > 0 && holdings.some((h) => h.governanceScore)
+    ? Math.round(holdings.reduce((sum, h) => sum + (h.governanceScore || 0), 0) / holdings.filter((h) => h.governanceScore).length)
     : 0;
 
-  // Calculate sector allocation for pie chart
   const sectorAllocation = useMemo(() => {
     const sectorTotals: Record<string, number> = {};
     for (const holding of holdings) {
@@ -184,44 +182,10 @@ export default function Home() {
     }));
   }, [holdings, totalValue]);
 
-  return (
-    <div className="flex min-h-screen flex-col bg-background text-foreground">
-      <header className="flex items-center justify-between border-b px-4 py-3">
-        <h1 className="text-lg font-semibold">Montblanc Capital</h1>
-        <ThemeToggle />
-      </header>
-
-      <Tabs defaultValue="chat" className="flex flex-1 flex-col overflow-hidden">
-        <TabsList className="mx-4 mt-4 max-w-full flex-wrap">
-          <TabsTrigger value="chat" className="gap-1.5">
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Chat Advisor</span>
-            <span className="sm:hidden">Chat</span>
-          </TabsTrigger>
-          <TabsTrigger value="portfolio" className="gap-1.5">
-            <PieChartIcon className="h-4 w-4" />
-            <span className="hidden sm:inline">Portfolio Dashboard</span>
-            <span className="sm:hidden">Portfolio</span>
-          </TabsTrigger>
-          <TabsTrigger value="screening" className="gap-1.5">
-            <Search className="h-4 w-4" />
-            <span className="hidden sm:inline">ESG Screening</span>
-            <span className="sm:hidden">Screening</span>
-          </TabsTrigger>
-          <TabsTrigger value="market" className="gap-1.5">
-            <TrendingUp className="h-4 w-4" />
-            <span className="hidden sm:inline">Market Insights</span>
-            <span className="sm:hidden">Market</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="chat" className="flex-1 overflow-hidden">
-          <div data-testid="chat-content" className="h-full">
-            <Chat onPortfolioUpdate={handlePortfolioUpdate} />
-          </div>
-        </TabsContent>
-
-        <TabsContent value="portfolio" className="flex-1 overflow-auto p-4">
+  const renderContent = () => {
+    switch (activeSection) {
+      case "dashboard":
+        return (
           <div data-testid="portfolio-content" className="space-y-4">
             <Card data-testid="portfolio-summary">
               <CardHeader>
@@ -242,20 +206,19 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Benchmark Comparison Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Benchmark Comparison</CardTitle>
               </CardHeader>
               <CardContent>
                 <div data-testid="benchmark" className="space-y-2">
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">vs MSCI ESG Leaders Index</span>
                     <span className={`font-semibold ${(dailyChange - benchmarkDailyChange) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {(dailyChange - benchmarkDailyChange) >= 0 ? "+" : ""}{(dailyChange - benchmarkDailyChange).toFixed(2)}% outperformance
                     </span>
                   </div>
-                  <div className="flex justify-between items-center">
+                  <div className="flex items-center justify-between">
                     <span className="text-muted-foreground">ESG Score vs Benchmark</span>
                     <span className={`font-semibold ${(avgESGScore - benchmarkESGScore) >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}>
                       {(avgESGScore - benchmarkESGScore) >= 0 ? "+" : ""}{avgESGScore - benchmarkESGScore} points
@@ -265,7 +228,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* Allocation Chart Card */}
             <Card data-testid="allocation-chart">
               <CardHeader>
                 <CardTitle>Sector Allocation</CardTitle>
@@ -299,7 +261,6 @@ export default function Home() {
               </CardContent>
             </Card>
 
-            {/* ESG Breakdown Card */}
             <Card>
               <CardHeader>
                 <CardTitle>Portfolio ESG Score</CardTitle>
@@ -314,7 +275,7 @@ export default function Home() {
                       <Progress value={avgESGScore} className={getESGBgClass(avgESGScore)} />
                     </div>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 pt-4 border-t">
+                  <div className="grid grid-cols-3 gap-4 border-t pt-4">
                     <div className="text-center">
                       <div className="text-sm text-muted-foreground" data-label="Environmental">Environmental</div>
                       <div className={`text-xl font-semibold ${getESGColorClass(avgEnvironmental)}`} data-testid="e-score">
@@ -337,7 +298,12 @@ export default function Home() {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        );
 
+      case "holdings":
+        return (
+          <div data-testid="holdings-content" className="space-y-4">
             <Card>
               <CardHeader>
                 <CardTitle>Holdings</CardTitle>
@@ -382,20 +348,162 @@ export default function Home() {
               </CardContent>
             </Card>
           </div>
-        </TabsContent>
+        );
 
-        <TabsContent value="screening" className="flex-1 p-4">
-          <div data-testid="screening-content" className="h-full">
-            <p className="text-muted-foreground">Screen ESG investments</p>
-          </div>
-        </TabsContent>
+      case "esg":
+        return (
+          <div data-testid="esg-content" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>ESG Analysis</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4" data-testid="esg-breakdown">
+                  <div className="flex items-center justify-between">
+                    <span className="text-2xl font-bold" data-testid="portfolio-esg" data-esg-score={avgESGScore}>
+                      <span className={getESGColorClass(avgESGScore)}>{avgESGScore}</span>/100
+                    </span>
+                    <div data-testid="esg-gauge" className="w-32">
+                      <Progress value={avgESGScore} className={getESGBgClass(avgESGScore)} />
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 border-t pt-4">
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground">Environmental</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgEnvironmental)}`} data-testid="e-score">
+                        {avgEnvironmental || "N/A"}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground">Social</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgSocial)}`} data-testid="s-score">
+                        {avgSocial || "N/A"}
+                      </div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-sm text-muted-foreground">Governance</div>
+                      <div className={`text-xl font-semibold ${getESGColorClass(avgGovernance)}`} data-testid="g-score">
+                        {avgGovernance || "N/A"}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
 
-        <TabsContent value="market" className="flex-1 p-4">
-          <div data-testid="market-content" className="h-full">
-            <p className="text-muted-foreground">Market insights and trends</p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Holdings ESG Scores</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Symbol</TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead className="text-right">ESG Score</TableHead>
+                      <TableHead className="text-right">E</TableHead>
+                      <TableHead className="text-right">S</TableHead>
+                      <TableHead className="text-right">G</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {holdings.map((holding) => (
+                      <TableRow key={holding.symbol}>
+                        <TableCell className="font-medium">{holding.symbol}</TableCell>
+                        <TableCell>{holding.name}</TableCell>
+                        <TableCell className="text-right">
+                          <span className={getESGColorClass(holding.esgScore)} data-testid="esg-score">
+                            {holding.esgScore}
+                          </span>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {holding.environmentalScore || "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {holding.socialScore || "-"}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {holding.governanceScore || "-"}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
           </div>
-        </TabsContent>
-      </Tabs>
-    </div>
+        );
+
+      case "screening":
+        return (
+          <div data-testid="screening-content" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>ESG Screening</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Screen ESG investments</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "watchlist":
+        return (
+          <div data-testid="watchlist-content" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Watchlist</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Track stocks on your watchlist</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      case "settings":
+        return (
+          <div data-testid="settings-content" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Settings</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Configure your preferences</p>
+              </CardContent>
+            </Card>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <DashboardLayout
+      sidebar={
+        <Sidebar
+          activeSection={activeSection}
+          onNavigate={setActiveSection}
+        />
+      }
+      header={
+        <Header
+          portfolios={portfolios}
+          selectedPortfolioId={selectedPortfolioId}
+          onPortfolioChange={setSelectedPortfolioId}
+        />
+      }
+    >
+      {renderContent()}
+
+      {/* Floating Chat - preserved for AI interaction */}
+      <div data-testid="chat-content" className="hidden">
+        <Chat onPortfolioUpdate={handlePortfolioUpdate} />
+      </div>
+    </DashboardLayout>
   );
 }

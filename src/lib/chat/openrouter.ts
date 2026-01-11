@@ -144,8 +144,13 @@ Response: Filtering to technology holdings with ESG above 75.
 - Use A2UI components when showing portfolio data or ESG scores
 - NEVER add disclaimers, warnings, investment advice caveats, or risk notices
 - Be direct: "Adding X shares" not "I'll add X shares to your portfolio"
-- When user asks about their holdings, portfolio value, or any portfolio data, ALWAYS use the get_portfolio tool first to get current data
-- Never guess or make up portfolio data - always query it using tools`;
+
+## CRITICAL: Tool Usage Rules
+- ALWAYS use get_portfolio or get_holding tools when the user asks about ANY portfolio data
+- This includes questions about: shares, holdings, stocks, positions, values, how many, which stocks, portfolio
+- NEVER answer portfolio questions from memory or conversation history - ALWAYS call the tool first
+- Even if you think you know the answer, you MUST call the tool to get current data
+- The portfolio data can change at any time, so cached answers are always wrong`;
 
 // Portfolio tool definitions for function calling
 export const PORTFOLIO_TOOLS = [

@@ -4,7 +4,6 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { ChatMessage } from "./ChatMessage";
 import { ChatInput } from "./ChatInput";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
-import { ScrollArea } from "@/components/ui/scroll-area";
 
 const MAX_MESSAGES_PER_SESSION = 20;
 const QUOTA_STORAGE_KEY = "chat_quota";
@@ -181,7 +180,7 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
           </span>
         )}
       </div>
-      <ScrollArea className="flex-1 p-4" ref={scrollRef}>
+      <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((message) => (
             <ChatMessage
@@ -198,7 +197,7 @@ export function Chat({ onPortfolioUpdate }: ChatProps) {
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
       <div className="border-t p-4">
         <ChatInput onSend={handleSend} disabled={isLoading} />
       </div>

@@ -166,12 +166,14 @@ export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProp
 
       // Parse AI response to extract actions
       const parsed = parseA2UIMessage(data.message);
-      const hasActions = parsed.actions && parsed.actions.length > 0;
+      // Only show pending spinner for portfolio-modifying actions
+      const portfolioActionTypes = ["add_holding", "remove_holding", "update_holding"];
+      const hasPortfolioActions = parsed.actions?.some(a => portfolioActionTypes.includes(a.type)) || false;
 
       // Generate fallback text if AI only returned JSON without text
       let displayContent = data.message;
-      if (hasActions && !parsed.text?.trim()) {
-        const actionTexts = parsed.actions!.map(generateActionText);
+      if (hasPortfolioActions && !parsed.text?.trim()) {
+        const actionTexts = parsed.actions!.filter(a => portfolioActionTypes.includes(a.type)).map(generateActionText);
         displayContent = actionTexts.join("\n") + "\n" + data.message;
       }
 
@@ -181,7 +183,7 @@ export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProp
         role: "assistant",
         content: displayContent,
         timestamp: new Date(),
-        actionPending: hasActions,
+        actionPending: hasPortfolioActions,
         toolsUsed: data.toolsUsed || [],
       };
 
@@ -202,12 +204,12 @@ export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProp
         saveQuotaToStorage(newQuota);
       }
 
-      // Execute any portfolio actions from the AI response
-      if (parsed.actions && parsed.actions.length > 0) {
+      // Execute portfolio actions from the AI response
+      if (hasPortfolioActions) {
         // Small delay to show the spinner
         await new Promise((resolve) => setTimeout(resolve, 500));
 
-        for (const action of parsed.actions) {
+        for (const action of parsed.actions!.filter(a => portfolioActionTypes.includes(a.type))) {
           let actionResult: ActionResult | undefined;
 
           if (action.type === "add_holding") {

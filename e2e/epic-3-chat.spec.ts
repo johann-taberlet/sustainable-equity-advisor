@@ -14,7 +14,9 @@ import { test, expect } from "@playwright/test";
 test.describe("Epic 3: AI Chat Advisor", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("tab", { name: /chat|advisor/i }).click();
+    // Open AI panel
+    await page.getByTestId("floating-ai-button").click();
+    await page.getByTestId("ai-panel").waitFor({ state: "visible" });
   });
 
   // Task 3.1: OpenRouter API integration

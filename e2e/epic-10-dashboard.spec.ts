@@ -14,7 +14,7 @@ import { test, expect } from "@playwright/test";
 test.describe("Epic 10: Portfolio Dashboard Tab", () => {
   test.beforeEach(async ({ page }) => {
     await page.goto("/");
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
+    // Dashboard is shown by default
   });
 
   // Task 10.1: Portfolio summary header

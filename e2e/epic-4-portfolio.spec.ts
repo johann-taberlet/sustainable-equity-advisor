@@ -21,10 +21,11 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.1: Demo portfolio data
   // Acceptance: Portfolio loads with pre-populated holdings
   test("demo portfolio is pre-populated on first visit", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
+    // Dashboard is shown by default, navigate to holdings
+    await page.getByTestId("nav-holdings").click();
 
     // Wait for portfolio to load
-    await page.waitForSelector("[data-testid='portfolio-content'], [data-testid='holdings-list']", {
+    await page.waitForSelector("[data-testid='holdings-content'], [data-testid='holdings-list']", {
       timeout: 10000,
     });
 
@@ -34,7 +35,7 @@ test.describe("Epic 4: Portfolio Management", () => {
     expect(count).toBeGreaterThanOrEqual(5); // Demo has 11 stocks
 
     // Should include known demo stocks (at least one)
-    const portfolioContent = page.locator("[data-testid='portfolio-content'], [data-tab='portfolio']");
+    const portfolioContent = page.locator("[data-testid='holdings-content'], [data-testid='holdings-list']");
     const text = await portfolioContent.textContent();
     const demoStocks = ["AAPL", "MSFT", "NESN", "ASML", "TSM", "Vestas", "Apple", "Microsoft"];
     const hasKnownStock = demoStocks.some((stock) => text?.includes(stock));
@@ -44,7 +45,7 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.2: Portfolio data model
   // Acceptance: Holdings show symbol, shares, weight
   test("holdings display complete data", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
+    await page.getByTestId("nav-holdings").click();
 
     await page.waitForSelector("[data-testid='holding-row'], [data-testid='holding']", {
       timeout: 10000,
@@ -63,8 +64,7 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.3: Real-time value calculation
   // Acceptance: Portfolio total value is displayed
   test("portfolio total value is calculated and displayed", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-
+    // Dashboard shows portfolio value
     await page.waitForSelector("[data-testid='portfolio-value'], [data-testid='total-value']", {
       timeout: 10000,
     });
@@ -78,8 +78,6 @@ test.describe("Epic 4: Portfolio Management", () => {
   });
 
   test("portfolio shows daily change percentage", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-
     await page.waitForSelector("[data-testid='portfolio-change'], [data-testid='daily-change']", {
       timeout: 10000,
     });
@@ -94,8 +92,9 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.4: Chat portfolio commands
   // Acceptance: Can add/remove holdings via chat
   test("can add holding via chat command", async ({ page }) => {
-    // Go to chat
-    await page.getByRole("tab", { name: /chat|advisor/i }).click();
+    // Open AI panel
+    await page.getByTestId("floating-ai-button").click();
+    await page.getByTestId("ai-panel").waitFor({ state: "visible" });
 
     const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
     const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
@@ -115,17 +114,19 @@ test.describe("Epic 4: Portfolio Management", () => {
     // Should confirm addition
     expect(responseText?.toLowerCase()).toMatch(/added|google|googl|portfolio|success/i);
 
-    // Verify in portfolio tab
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-    await page.waitForSelector("[data-testid='portfolio-content']", { timeout: 5000 });
+    // Close AI panel and verify in holdings
+    await page.getByTestId("ai-panel-close").click();
+    await page.getByTestId("nav-holdings").click();
+    await page.waitForSelector("[data-testid='holdings-content']", { timeout: 5000 });
 
-    const portfolio = page.locator("[data-testid='portfolio-content'], [data-tab='portfolio']");
-    await expect(portfolio).toContainText(/GOOGL|Google|Alphabet/i);
+    const holdingsContent = page.locator("[data-testid='holdings-content']");
+    await expect(holdingsContent).toContainText(/GOOGL|Google|Alphabet/i);
   });
 
   test("can remove holding via chat command", async ({ page }) => {
-    // Go to chat
-    await page.getByRole("tab", { name: /chat|advisor/i }).click();
+    // Open AI panel
+    await page.getByTestId("floating-ai-button").click();
+    await page.getByTestId("ai-panel").waitFor({ state: "visible" });
 
     const chatInput = page.getByTestId("chat-input").or(page.locator("textarea, input[type='text']").first());
     const sendButton = page.getByTestId("send-button").or(page.getByRole("button", { name: /send/i }));
@@ -148,8 +149,6 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.6: ESG score aggregation
   // Acceptance: Portfolio shows aggregate ESG score
   test("portfolio displays aggregate ESG score", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-
     await page.waitForSelector("[data-testid='portfolio-esg'], [data-testid='esg-score']", {
       timeout: 10000,
     });
@@ -165,8 +164,6 @@ test.describe("Epic 4: Portfolio Management", () => {
   });
 
   test("ESG breakdown shows E, S, G components", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-
     await page.waitForSelector("[data-testid='esg-breakdown'], [data-testid='esg-details']", {
       timeout: 10000,
     });
@@ -181,8 +178,6 @@ test.describe("Epic 4: Portfolio Management", () => {
   // Task 4.8: Benchmark comparison
   // Acceptance: Portfolio vs benchmark is displayed
   test("portfolio shows benchmark comparison", async ({ page }) => {
-    await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
-
     await page.waitForSelector("[data-testid='benchmark'], [data-testid='vs-benchmark']", {
       timeout: 10000,
     });

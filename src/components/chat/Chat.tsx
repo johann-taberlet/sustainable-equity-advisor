@@ -44,11 +44,22 @@ export interface ActionResult {
 interface ExtendedChatMessage extends ChatMessageType {
   actionPending?: boolean;
   actionResult?: ActionResult;
+  toolsUsed?: string[];
+}
+
+export interface PortfolioHolding {
+  symbol: string;
+  name: string;
+  shares: number;
+  value: number;
+  esgScore: number;
+  sector: string;
 }
 
 interface ChatProps {
   onPortfolioUpdate?: (action: PortfolioAction) => void;
   getHoldingShares?: (symbol: string) => number;
+  holdings?: PortfolioHolding[];
 }
 
 interface ConversationMessage {
@@ -80,10 +91,23 @@ function saveQuotaToStorage(remaining: number): void {
   );
 }
 
-export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
+// Detect if a message is likely to trigger portfolio queries
+function isPortfolioQuery(content: string): boolean {
+  const portfolioKeywords = [
+    "portfolio", "holdings", "shares", "stock", "position",
+    "how many", "how much", "value", "nestle", "apple", "microsoft",
+    "aapl", "msft", "googl", "nesn", "my stocks", "what do i have",
+    "what do i own", "esg score",
+  ];
+  const lowerContent = content.toLowerCase();
+  return portfolioKeywords.some(keyword => lowerContent.includes(keyword));
+}
+
+export function Chat({ onPortfolioUpdate, getHoldingShares, holdings }: ChatProps) {
   const [messages, setMessages] = useState<ExtendedChatMessage[]>([]);
   const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingMessage, setLoadingMessage] = useState("Thinking...");
   const [messagesRemaining, setMessagesRemaining] = useState(MAX_MESSAGES_PER_SESSION);
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -113,6 +137,13 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
     setMessages((prev) => [...prev, userMessage]);
     setIsLoading(true);
 
+    // Show appropriate loading message based on query type
+    if (isPortfolioQuery(content)) {
+      setLoadingMessage("Querying your data...");
+    } else {
+      setLoadingMessage("Thinking...");
+    }
+
     try {
       // Call the API route
       const response = await fetch("/api/chat", {
@@ -123,6 +154,7 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
         body: JSON.stringify({
           message: content,
           history: conversationHistory,
+          holdings: holdings,
         }),
       });
 
@@ -150,6 +182,7 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
         content: displayContent,
         timestamp: new Date(),
         actionPending: hasActions,
+        toolsUsed: data.toolsUsed || [],
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -249,7 +282,7 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
       setMessages((prev) => [...prev, errorMessage]);
       setIsLoading(false);
     }
-  }, [conversationHistory, messagesRemaining, onPortfolioUpdate]);
+  }, [conversationHistory, messagesRemaining, onPortfolioUpdate, getHoldingShares, holdings]);
 
   const handleAction = useCallback((action: string) => {
     // Handle A2UI button actions by sending a follow-up message
@@ -307,7 +340,7 @@ export function Chat({ onPortfolioUpdate, getHoldingShares }: ChatProps) {
           {isLoading && (
             <div className="flex justify-start" data-testid="loading" aria-busy="true">
               <div className="rounded-lg bg-muted px-4 py-2">
-                <span className="animate-pulse">Thinking...</span>
+                <span className="animate-pulse">{loadingMessage}</span>
               </div>
             </div>
           )}

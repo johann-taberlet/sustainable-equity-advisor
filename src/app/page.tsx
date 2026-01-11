@@ -548,7 +548,7 @@ export default function Home() {
       {/* AI Panel */}
       <AIPanel isOpen={aiPanelOpen} onClose={() => setAiPanelOpen(false)}>
         <div data-testid="chat-content" className="h-full">
-          <Chat onPortfolioUpdate={handlePortfolioUpdate} getHoldingShares={getHoldingShares} />
+          <Chat onPortfolioUpdate={handlePortfolioUpdate} getHoldingShares={getHoldingShares} holdings={holdings} />
         </div>
       </AIPanel>
     </DashboardLayout>

@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 import { Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { parseA2UIMessage } from "@/lib/a2ui";
-import { A2UIRenderer, ActionConfirmation } from "@/components/a2ui";
+import { A2UIRenderer, ActionConfirmation, DataQueryBadge } from "@/components/a2ui";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat/types";
 import type { ActionResult } from "./Chat";
 
@@ -12,6 +12,7 @@ interface ChatMessageProps {
   message: ChatMessageType & {
     actionPending?: boolean;
     actionResult?: ActionResult;
+    toolsUsed?: string[];
   };
   onAction?: (action: string) => void;
 }
@@ -37,6 +38,9 @@ export function ChatMessage({ message, onAction }: ChatMessageProps) {
             : "bg-muted"
         )}
       >
+        {!isUser && message.toolsUsed && message.toolsUsed.length > 0 && (
+          <DataQueryBadge tools={message.toolsUsed} />
+        )}
         {parsed.text && (
           <div className={cn(
             "prose prose-sm max-w-none",

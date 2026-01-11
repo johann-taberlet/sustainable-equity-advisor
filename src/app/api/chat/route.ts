@@ -1,10 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getMockResponse } from "@/lib/chat";
-import { callOpenRouter, type OpenRouterMessage } from "@/lib/chat/openrouter";
+import {
+  callOpenRouter,
+  type OpenRouterMessage,
+  type PortfolioHolding,
+} from "@/lib/chat/openrouter";
 
 interface ChatRequestBody {
   message: string;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
+  holdings?: PortfolioHolding[];
 }
 
 // Check if we should use mock responses
@@ -13,7 +18,7 @@ const USE_MOCK_LLM = process.env.USE_MOCK_LLM === "true";
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequestBody = await request.json();
-    const { message, history = [] } = body;
+    const { message, history = [], holdings = [] } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -23,6 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     let responseMessage: string;
+    let toolsUsed: string[] = [];
 
     if (USE_MOCK_LLM) {
       // Use mock responses for testing
@@ -46,7 +52,9 @@ export async function POST(request: NextRequest) {
             { role: "user" as const, content: message },
           ];
 
-          responseMessage = await callOpenRouter(messages, apiKey);
+          const result = await callOpenRouter(messages, apiKey, holdings);
+          responseMessage = result.content;
+          toolsUsed = result.toolsUsed;
         } catch (error) {
           console.error("OpenRouter API error:", error);
 
@@ -76,6 +84,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       message: responseMessage,
       role: "assistant",
+      toolsUsed,
     });
   } catch (error) {
     console.error("Chat API error:", error);

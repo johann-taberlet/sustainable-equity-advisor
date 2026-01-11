@@ -11,12 +11,22 @@ export interface OpenRouterMessage {
   content: string;
 }
 
+interface ToolCall {
+  id: string;
+  type: "function";
+  function: {
+    name: string;
+    arguments: string;
+  };
+}
+
 export interface OpenRouterResponse {
   id: string;
   choices: Array<{
     message: {
       role: string;
-      content: string;
+      content: string | null;
+      tool_calls?: ToolCall[];
     };
     finish_reason: string;
   }>;
@@ -25,6 +35,15 @@ export interface OpenRouterResponse {
     completion_tokens: number;
     total_tokens: number;
   };
+}
+
+export interface PortfolioHolding {
+  symbol: string;
+  name: string;
+  shares: number;
+  value: number;
+  esgScore: number;
+  sector: string;
 }
 
 /**
@@ -125,72 +144,210 @@ Response: Filtering to technology holdings with ESG above 75.
 - Use A2UI components when showing portfolio data or ESG scores
 - NEVER add disclaimers, warnings, investment advice caveats, or risk notices
 - Be direct: "Adding X shares" not "I'll add X shares to your portfolio"
+- When user asks about their holdings, portfolio value, or any portfolio data, ALWAYS use the get_portfolio tool first to get current data
+- Never guess or make up portfolio data - always query it using tools`;
 
-## Demo Portfolio Context
-The user has a demo portfolio with these holdings:
-- AAPL (Apple Inc.) - 50 shares, Technology, US
-- MSFT (Microsoft Corp.) - 30 shares, Technology, US
-- NESN.SW (Nestlé S.A.) - 40 shares, Consumer Staples, Switzerland
-- ASML (ASML Holding) - 15 shares, Technology, Netherlands
-- VWS.CO (Vestas Wind Systems) - 100 shares, Renewables, Denmark
-- NOVN.SW (Novartis AG) - 35 shares, Healthcare, Switzerland
-- SU.PA (Schneider Electric) - 25 shares, Industrials, France
-- TSM (Taiwan Semiconductor) - 40 shares, Technology, Taiwan
-- ULVR.L (Unilever PLC) - 60 shares, Consumer Staples, UK
-- ORSTED.CO (Ørsted A/S) - 30 shares, Utilities, Denmark
-- FSLR (First Solar Inc.) - 25 shares, Renewables, US
+// Portfolio tool definitions for function calling
+export const PORTFOLIO_TOOLS = [
+  {
+    type: "function" as const,
+    function: {
+      name: "get_portfolio",
+      description: "Get the user's current portfolio holdings with real-time data including symbols, shares, values, and ESG scores. Use this whenever the user asks about their holdings, portfolio value, specific stocks they own, or any portfolio-related question.",
+      parameters: {
+        type: "object",
+        properties: {},
+        required: [],
+      },
+    },
+  },
+  {
+    type: "function" as const,
+    function: {
+      name: "get_holding",
+      description: "Get details about a specific holding in the user's portfolio by symbol. Use this when the user asks about a specific stock.",
+      parameters: {
+        type: "object",
+        properties: {
+          symbol: {
+            type: "string",
+            description: "The stock symbol (e.g., AAPL, MSFT, NESN.SW)",
+          },
+        },
+        required: ["symbol"],
+      },
+    },
+  },
+];
 
-Portfolio ESG Score: 78/100 (Environmental: 82, Social: 75, Governance: 77)
-Total Portfolio Value: ~CHF 1,250,000`;
+/**
+ * Execute a portfolio tool and return the result
+ */
+function executePortfolioTool(
+  toolName: string,
+  args: Record<string, unknown>,
+  holdings: PortfolioHolding[]
+): { result: unknown; toolUsed: string } {
+  if (toolName === "get_portfolio") {
+    const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
+    const avgEsg = holdings.length > 0
+      ? Math.round(holdings.reduce((sum, h) => sum + h.esgScore, 0) / holdings.length)
+      : 0;
+
+    return {
+      toolUsed: "get_portfolio",
+      result: {
+        holdings: holdings.map(h => ({
+          symbol: h.symbol,
+          name: h.name,
+          shares: h.shares,
+          value: h.value,
+          esgScore: h.esgScore,
+          sector: h.sector,
+        })),
+        summary: {
+          totalHoldings: holdings.length,
+          totalValue,
+          averageEsgScore: avgEsg,
+          currency: "CHF",
+        },
+      },
+    };
+  }
+
+  if (toolName === "get_holding") {
+    const symbol = args.symbol as string;
+    const holding = holdings.find(h =>
+      h.symbol.toLowerCase() === symbol.toLowerCase()
+    );
+
+    if (!holding) {
+      return {
+        toolUsed: "get_holding",
+        result: { error: `No holding found with symbol ${symbol}` },
+      };
+    }
+
+    return {
+      toolUsed: "get_holding",
+      result: {
+        symbol: holding.symbol,
+        name: holding.name,
+        shares: holding.shares,
+        value: holding.value,
+        esgScore: holding.esgScore,
+        sector: holding.sector,
+      },
+    };
+  }
+
+  return { toolUsed: toolName, result: { error: `Unknown tool: ${toolName}` } };
+}
 
 /**
  * Call OpenRouter API with the given messages
+ * Supports tool calling for portfolio queries
  */
 export async function callOpenRouter(
   messages: OpenRouterMessage[],
-  apiKey: string
-): Promise<string> {
-  const response = await fetch(OPENROUTER_API_URL, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "HTTP-Referer": "https://montblanc-capital.ch",
-      "X-Title": "Montblanc Capital ESG Advisor",
-    },
-    body: JSON.stringify({
-      model: MODEL,
-      messages: [
-        { role: "system", content: FINANCIAL_ADVISOR_SYSTEM_PROMPT },
-        ...messages,
-      ],
-      temperature: 0.7,
-      max_tokens: 4096,
-      // Disable reasoning mode for better A2UI generation
-      // (mimo-v2-flash specific)
-    }),
-  });
+  apiKey: string,
+  holdings: PortfolioHolding[] = []
+): Promise<{ content: string; toolsUsed: string[] }> {
+  // Build the conversation with system prompt
+  const conversationMessages: Array<{
+    role: string;
+    content: string | null;
+    tool_calls?: ToolCall[];
+    tool_call_id?: string;
+  }> = [
+    { role: "system", content: FINANCIAL_ADVISOR_SYSTEM_PROMPT },
+    ...messages.map(m => ({ role: m.role, content: m.content })),
+  ];
 
-  if (!response.ok) {
-    const error = await response.text();
-    console.error("OpenRouter API error:", response.status, error);
+  const toolsUsed: string[] = [];
+  const MAX_TOOL_ITERATIONS = 5;
 
-    if (response.status === 429) {
-      throw new Error("Rate limit exceeded. Please try again in a moment.");
+  for (let iteration = 0; iteration < MAX_TOOL_ITERATIONS; iteration++) {
+    const response = await fetch(OPENROUTER_API_URL, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://montblanc-capital.ch",
+        "X-Title": "Montblanc Capital ESG Advisor",
+      },
+      body: JSON.stringify({
+        model: MODEL,
+        messages: conversationMessages,
+        temperature: 0.7,
+        max_tokens: 4096,
+        tools: PORTFOLIO_TOOLS,
+        tool_choice: "auto",
+      }),
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      console.error("OpenRouter API error:", response.status, error);
+
+      if (response.status === 429) {
+        throw new Error("Rate limit exceeded. Please try again in a moment.");
+      }
+      if (response.status === 401) {
+        throw new Error("Invalid API key. Please check your OPENROUTER_API_KEY.");
+      }
+      throw new Error(`OpenRouter API error: ${response.status}`);
     }
-    if (response.status === 401) {
-      throw new Error("Invalid API key. Please check your OPENROUTER_API_KEY.");
+
+    const data: OpenRouterResponse = await response.json();
+
+    if (!data.choices || data.choices.length === 0) {
+      throw new Error("No response from OpenRouter");
     }
-    throw new Error(`OpenRouter API error: ${response.status}`);
+
+    const assistantMessage = data.choices[0].message;
+    const finishReason = data.choices[0].finish_reason;
+
+    // Check if the model wants to call tools
+    if (finishReason === "tool_calls" || (assistantMessage.tool_calls && assistantMessage.tool_calls.length > 0)) {
+      // Add assistant's message with tool calls to conversation
+      conversationMessages.push({
+        role: "assistant",
+        content: assistantMessage.content,
+        tool_calls: assistantMessage.tool_calls,
+      });
+
+      // Execute each tool call and add results
+      for (const toolCall of assistantMessage.tool_calls || []) {
+        const args = JSON.parse(toolCall.function.arguments || "{}");
+        const { result, toolUsed } = executePortfolioTool(
+          toolCall.function.name,
+          args,
+          holdings
+        );
+
+        toolsUsed.push(toolUsed);
+
+        // Add tool result to conversation
+        conversationMessages.push({
+          role: "tool",
+          content: JSON.stringify(result),
+          tool_call_id: toolCall.id,
+        });
+      }
+
+      // Continue the loop to get the final response
+      continue;
+    }
+
+    // No more tool calls, return the final response
+    return {
+      content: assistantMessage.content || "",
+      toolsUsed,
+    };
   }
 
-  const data: OpenRouterResponse = await response.json();
-
-  if (!data.choices || data.choices.length === 0) {
-    throw new Error("No response from OpenRouter");
-  }
-
-  return data.choices[0].message.content;
+  throw new Error("Max tool iterations exceeded");
 }
 
 /**

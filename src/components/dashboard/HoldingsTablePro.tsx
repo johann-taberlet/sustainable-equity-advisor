@@ -84,16 +84,13 @@ export function HoldingsTablePro({
   const [minEsgFilter, setMinEsgFilter] = useState<string>("");
   const [maxEsgFilter, setMaxEsgFilter] = useState<string>("");
 
-  // Sync external filter from chat to internal state
+  // Sync external filter from chat to internal state (reset all, then apply new)
   useEffect(() => {
-    if (filter?.sector) {
-      setSectorFilter(filter.sector);
-    }
-    if (filter?.minEsg !== undefined) {
-      setMinEsgFilter(filter.minEsg.toString());
-    }
-    if (filter?.maxEsg !== undefined) {
-      setMaxEsgFilter(filter.maxEsg.toString());
+    if (filter) {
+      // Reset all filters first, then apply new values
+      setSectorFilter(filter.sector || "all");
+      setMinEsgFilter(filter.minEsg?.toString() || "");
+      setMaxEsgFilter(filter.maxEsg?.toString() || "");
     }
   }, [filter]);
 

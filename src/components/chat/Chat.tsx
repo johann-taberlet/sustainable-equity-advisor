@@ -9,6 +9,7 @@ import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { useCurrency } from "@/lib/currency";
 import { ChatInput, type ChatInputHandle } from "./ChatInput";
 import { ChatMessage } from "./ChatMessage";
+import { WelcomeMessage } from "./WelcomeMessage";
 
 // Generate fallback message text when AI only returns action JSON
 function generateActionText(action: ParsedAction): string {
@@ -465,10 +466,36 @@ export function Chat({
           actionMessage = "I want to set up a price alert";
           break;
         case "compare-holdings":
-          actionMessage = "Compare my holdings";
+          actionMessage = "Compare my holdings ESG scores";
           break;
         case "rebalance":
           actionMessage = "Rebalance my portfolio";
+          break;
+        // Navigation actions
+        case "navigate-screening":
+          onNavigate?.("screening");
+          return; // Don't send a message
+        case "navigate-holdings":
+          onNavigate?.("holdings");
+          return; // Don't send a message
+        case "navigate-dashboard":
+          onNavigate?.("dashboard");
+          return; // Don't send a message
+        case "navigate-esg":
+          onNavigate?.("esg");
+          return; // Don't send a message
+        // Example prompts from welcome message
+        case "example-add":
+          actionMessage = "Add 10 shares of Apple";
+          break;
+        case "example-compare":
+          actionMessage = "Compare AAPL and MSFT ESG scores";
+          break;
+        case "example-alert":
+          actionMessage = "Alert me when TSLA goes above 300";
+          break;
+        case "example-filter":
+          actionMessage = "Show tech stocks with ESG above 70";
           break;
         default:
           // Handle dynamic actions like "research-AAPL"
@@ -484,13 +511,16 @@ export function Chat({
       }
       handleSend(actionMessage);
     },
-    [handleSend],
+    [handleSend, onNavigate],
   );
 
   return (
     <div className="flex h-full flex-col">
       <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         <div className="space-y-4">
+          {messages.length === 0 && !isLoading && (
+            <WelcomeMessage onAction={handleAction} />
+          )}
           {messages.map((message) => (
             <ChatMessage
               key={message.id}

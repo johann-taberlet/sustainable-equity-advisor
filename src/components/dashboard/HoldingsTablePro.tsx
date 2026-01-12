@@ -87,10 +87,15 @@ export function HoldingsTablePro({
   // Sync external filter from chat to internal state (reset all, then apply new)
   useEffect(() => {
     if (filter) {
-      // Reset all filters first, then apply new values
+      // Apply new filter values
       setSectorFilter(filter.sector || "all");
       setMinEsgFilter(filter.minEsg?.toString() || "");
       setMaxEsgFilter(filter.maxEsg?.toString() || "");
+    } else {
+      // Filter cleared - reset all to defaults
+      setSectorFilter("all");
+      setMinEsgFilter("");
+      setMaxEsgFilter("");
     }
   }, [filter]);
 

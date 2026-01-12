@@ -1,36 +1,92 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Sustainable Equity Advisor
 
-## Getting Started
+An AI-powered ESG investment advisory platform featuring conversational portfolio management through natural language. Built as a portfolio demo for a fictional Swiss wealth management firm.
 
-First, run the development server:
+**[Live Demo](https://sustainable-equity-advisor.vercel.app)**
+
+## Features
+
+### AI Chat Assistant
+- Natural language portfolio management ("Add 10 shares of Apple", "Sell 5 Tesla")
+- ESG stock comparisons with visual charts
+- Smart filtering ("Show tech stocks with ESG above 70")
+- Price alerts with localStorage persistence
+- Navigation commands ("Show me the holdings")
+
+### Portfolio Dashboard
+- Real-time portfolio valuation with currency conversion (USD/EUR/CHF)
+- ESG score breakdown (Environmental, Social, Governance)
+- Top ESG contributors ranked by weighted contribution
+- Controversy risk alerts
+- Interactive holdings table with sorting and filtering
+
+### ESG Analysis
+- Per-holding ESG scoring with color-coded indicators
+- Sector allocation visualization
+- ESG comparison charts between multiple stocks
+
+### Data Integration
+- Real-time stock prices via Financial Modeling Prep API
+- ESG scores from curated dataset
+- Multi-currency support with live exchange rates
+
+## Tech Stack
+
+- **Framework:** Next.js 15 (App Router) + React 19
+- **Styling:** Tailwind CSS 4 + shadcn/ui
+- **AI:** OpenRouter API (LLM integration)
+- **Charts:** Recharts
+- **Language:** TypeScript
+- **Linting:** Biome
+
+## Quick Start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Install dependencies
+bun install
+
+# Set up environment variables
+cp .env.example .env.local
+# Add your OPENROUTER_API_KEY and FMP_API_KEY
+
+# Run development server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Environment Variables
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Variable | Description |
+|----------|-------------|
+| `OPENROUTER_API_KEY` | API key for LLM chat functionality |
+| `FMP_API_KEY` | Financial Modeling Prep API for stock data |
 
-## Learn More
+## Project Structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+├── app/                    # Next.js App Router
+├── components/
+│   ├── a2ui/              # A2UI protocol components (chat UI)
+│   ├── chat/              # Chat interface components
+│   ├── dashboard/         # Dashboard widgets
+│   ├── layout/            # Layout components (Sidebar, Header)
+│   └── ui/                # shadcn/ui components
+├── lib/
+│   ├── alerts/            # Price alert utilities
+│   ├── chat/              # LLM integration (OpenRouter)
+│   └── currency/          # Currency conversion context
+└── hooks/                 # Custom React hooks
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Architecture Highlights
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- **A2UI Protocol:** LLM outputs structured JSON actions that the client executes (add holdings, navigate, filter, etc.)
+- **Tool Calling:** LLM uses function calling to query portfolio data and stock information
+- **Reactive Currency:** Currency conversion happens client-side via React Context for instant switching
+- **Optimistic UI:** Actions show immediate feedback before confirmation
 
-## Deploy on Vercel
+## License
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+MIT

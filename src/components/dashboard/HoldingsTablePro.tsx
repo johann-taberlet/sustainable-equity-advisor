@@ -7,7 +7,7 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -82,11 +82,30 @@ export function HoldingsTablePro({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
   const [minEsgFilter, setMinEsgFilter] = useState<string>("");
+  const [maxEsgFilter, setMaxEsgFilter] = useState<string>("");
+
+  // Sync external filter from chat to internal state
+  useEffect(() => {
+    if (filter?.sector) {
+      setSectorFilter(filter.sector);
+    }
+    if (filter?.minEsg !== undefined) {
+      setMinEsgFilter(filter.minEsg.toString());
+    }
+    if (filter?.maxEsg !== undefined) {
+      setMaxEsgFilter(filter.maxEsg.toString());
+    }
+  }, [filter]);
 
   // External filter from chat takes precedence
   const effectiveSectorFilter = filter?.sector || sectorFilter;
   const effectiveMinEsgFilter = filter?.minEsg?.toString() || minEsgFilter;
-  const hasExternalFilter = !!(filter?.sector || filter?.minEsg);
+  const effectiveMaxEsgFilter = filter?.maxEsg?.toString() || maxEsgFilter;
+  const hasExternalFilter = !!(
+    filter?.sector ||
+    filter?.minEsg ||
+    filter?.maxEsg
+  );
 
   // Get unique sectors
   const sectors = useMemo(() => {
@@ -103,7 +122,7 @@ export function HoldingsTablePro({
       result = result.filter((h) => h.sector === effectiveSectorFilter);
     }
 
-    // Apply ESG filter (use effective filter)
+    // Apply min ESG filter
     if (effectiveMinEsgFilter) {
       const minEsg = Number.parseInt(effectiveMinEsgFilter, 10);
       if (!Number.isNaN(minEsg)) {
@@ -111,10 +130,12 @@ export function HoldingsTablePro({
       }
     }
 
-    // Apply maxEsg filter from external filter
-    if (filter?.maxEsg !== undefined) {
-      const maxEsg = filter.maxEsg;
-      result = result.filter((h) => h.esgScore <= maxEsg);
+    // Apply max ESG filter
+    if (effectiveMaxEsgFilter) {
+      const maxEsg = Number.parseInt(effectiveMaxEsgFilter, 10);
+      if (!Number.isNaN(maxEsg)) {
+        result = result.filter((h) => h.esgScore <= maxEsg);
+      }
     }
 
     // Sort
@@ -140,7 +161,7 @@ export function HoldingsTablePro({
     sortDirection,
     effectiveSectorFilter,
     effectiveMinEsgFilter,
-    filter?.maxEsg,
+    effectiveMaxEsgFilter,
   ]);
 
   const handleSort = (key: SortKey) => {
@@ -215,15 +236,26 @@ export function HoldingsTablePro({
             type="number"
             min={0}
             max={100}
-            value={
-              hasExternalFilter
-                ? filter?.minEsg?.toString() || ""
-                : minEsgFilter
-            }
+            value={minEsgFilter}
             onChange={(e) => setMinEsgFilter(e.target.value)}
             className="w-20"
             placeholder="0"
             data-testid="esg-filter"
+            disabled={hasExternalFilter}
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">Max ESG:</span>
+          <Input
+            type="number"
+            min={0}
+            max={100}
+            value={maxEsgFilter}
+            onChange={(e) => setMaxEsgFilter(e.target.value)}
+            className="w-20"
+            placeholder="100"
+            data-testid="max-esg-filter"
             disabled={hasExternalFilter}
           />
         </div>

@@ -25,6 +25,7 @@ export interface ESGData {
   environmentalScore: number;
   socialScore: number;
   governanceScore: number;
+  controversyLevel?: number; // 0-5, lower = better
   lastUpdated: string;
 }
 
@@ -92,6 +93,7 @@ function curatedToESGData(curated: CuratedESGData): ESGData {
     environmentalScore: curated.environmentalScore,
     socialScore: curated.socialScore,
     governanceScore: curated.governanceScore,
+    controversyLevel: curated.controversyLevel,
     lastUpdated: curated.lastUpdated,
   };
 }

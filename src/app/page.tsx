@@ -1,5 +1,6 @@
 "use client";
 
+import { AlertTriangle, TrendingUp } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cell,
@@ -30,6 +31,7 @@ interface ESGData {
   environmentalScore: number;
   socialScore: number;
   governanceScore: number;
+  controversyLevel?: number;
   lastUpdated: string;
 }
 
@@ -42,6 +44,7 @@ interface Holding {
   environmentalScore?: number;
   socialScore?: number;
   governanceScore?: number;
+  controversyLevel?: number; // 0-5, lower = better
   weight?: number;
   change?: number;
   sector: string;
@@ -84,7 +87,7 @@ export default function Home() {
     portfolios[0].id,
   );
   const [holdings, setHoldings] = useState<Holding[]>([]); // Values stored in USD
-  const [aiPanelOpen, setAiPanelOpen] = useState(false);
+  const [aiPanelOpen, setAiPanelOpen] = useState(true);
 
   // Currency from context (reactive to changes)
   const { formatAmount } = useCurrency();
@@ -111,6 +114,7 @@ export default function Home() {
                   environmentalScore: esgData.environmentalScore,
                   socialScore: esgData.socialScore,
                   governanceScore: esgData.governanceScore,
+                  controversyLevel: esgData.controversyLevel,
                 };
               }
               return holding;
@@ -222,8 +226,7 @@ export default function Home() {
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
-  const dailyChange = 1.85;
-  const dailyChangeValue = totalValue * (dailyChange / 100);
+  const hasHoldings = holdings.length > 0;
 
   const avgESGScore =
     holdings.length > 0
@@ -252,6 +255,42 @@ export default function Home() {
             holdings.filter((h) => h.governanceScore).length,
         )
       : 0;
+
+  // Top ESG contributors - sorted by weighted contribution to portfolio score
+  const topESGContributors = useMemo(() => {
+    if (holdings.length === 0 || totalValue === 0) return [];
+
+    return holdings
+      .map((h) => ({
+        symbol: h.symbol,
+        name: h.name,
+        esgScore: h.esgScore,
+        weight: (h.value / totalValue) * 100,
+        contribution: (h.esgScore * h.value) / totalValue,
+      }))
+      .sort((a, b) => b.contribution - a.contribution)
+      .slice(0, 5);
+  }, [holdings, totalValue]);
+
+  // Holdings with controversy alerts (level >= 3)
+  const controversyAlerts = useMemo(() => {
+    return holdings
+      .filter(
+        (h) => h.controversyLevel !== undefined && h.controversyLevel >= 3,
+      )
+      .map((h) => ({
+        symbol: h.symbol,
+        name: h.name,
+        level: h.controversyLevel as number,
+        levelLabel:
+          h.controversyLevel === 5
+            ? "Severe"
+            : h.controversyLevel === 4
+              ? "High"
+              : "Moderate",
+      }))
+      .sort((a, b) => b.level - a.level);
+  }, [holdings]);
 
   const sectorAllocation = useMemo(() => {
     const sectorTotals: Record<string, number> = {};
@@ -302,149 +341,246 @@ export default function Home() {
     switch (activeSection) {
       case "dashboard":
         return (
-          <div data-testid="portfolio-content" className="space-y-4">
+          <div data-testid="portfolio-content" className="space-y-3">
             <Card data-testid="portfolio-summary">
-              <CardHeader>
+              <CardHeader className="pb-2">
                 <CardTitle>Portfolio Summary</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="flex flex-wrap items-baseline gap-4">
-                  <div
-                    className="text-3xl font-bold"
-                    data-testid="portfolio-value"
-                  >
-                    {formatAmount(totalValue)}
-                  </div>
-                  <div
-                    data-testid="portfolio-change"
-                    className={`text-lg font-semibold ${dailyChange >= 0 ? "text-green-600 dark:text-green-400" : "text-red-600 dark:text-red-400"}`}
-                  >
-                    {dailyChange >= 0 ? "+" : ""}
-                    {dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}
-                    {formatAmount(dailyChangeValue)})
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-
-            <PerformanceChart
-              data={performanceData}
-              showBenchmark
-              benchmarkLabel="MSCI ESG Leaders"
-            />
-
-            <Card data-testid="allocation-chart">
-              <CardHeader>
-                <CardTitle>Sector Allocation</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <PieChart>
-                      <Pie
-                        data={sectorAllocation}
-                        cx="50%"
-                        cy="50%"
-                        innerRadius={60}
-                        outerRadius={80}
-                        paddingAngle={2}
-                        dataKey="value"
-                        nameKey="name"
-                        label={({ name, percentage }) =>
-                          `${name} ${percentage}%`
-                        }
+                {hasHoldings ? (
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
+                    {/* Left: Portfolio Value */}
+                    <div>
+                      <div
+                        className="text-3xl font-bold"
+                        data-testid="portfolio-value"
                       >
-                        {sectorAllocation.map((entry) => (
-                          <Cell
-                            key={entry.name}
-                            fill={SECTOR_COLORS[entry.name] || "#6b7280"}
-                          />
-                        ))}
-                      </Pie>
-                      <Tooltip
-                        formatter={(value: number) => [
-                          formatAmount(value),
-                          "Value",
-                        ]}
-                      />
-                      <Legend />
-                    </PieChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+                        {formatAmount(totalValue)}
+                      </div>
+                      <p className="text-sm text-muted-foreground">
+                        Total portfolio value
+                      </p>
+                    </div>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Portfolio ESG Score</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4" data-testid="esg-breakdown">
-                  <div className="flex items-center justify-between">
-                    <span
-                      className="text-2xl font-bold"
-                      data-testid="portfolio-esg"
-                      data-esg-score={avgESGScore}
+                    {/* Right: ESG Score */}
+                    <div
+                      className="flex flex-col items-end gap-2"
+                      data-testid="esg-breakdown"
                     >
-                      <span className={getESGColorClass(avgESGScore)}>
-                        {avgESGScore}
-                      </span>
-                      /100
-                    </span>
-                    <div data-testid="esg-gauge" className="w-32">
-                      <Progress
-                        value={avgESGScore}
-                        className={getESGBgClass(avgESGScore)}
-                      />
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4 border-t pt-4">
-                    <div className="text-center">
-                      <div
-                        className="text-sm text-muted-foreground"
-                        data-label="Environmental"
-                      >
-                        Environmental
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-muted-foreground">
+                          ESG Score
+                        </span>
+                        <span
+                          className="text-2xl font-bold"
+                          data-testid="portfolio-esg"
+                          data-esg-score={avgESGScore}
+                        >
+                          <span className={getESGColorClass(avgESGScore)}>
+                            {avgESGScore}
+                          </span>
+                          <span className="text-muted-foreground text-lg">
+                            /100
+                          </span>
+                        </span>
                       </div>
-                      <div
-                        className={`text-xl font-semibold ${getESGColorClass(avgEnvironmental)}`}
-                        data-testid="e-score"
-                      >
-                        {avgEnvironmental || "N/A"}
+                      <div data-testid="esg-gauge" className="w-32">
+                        <Progress
+                          value={avgESGScore}
+                          className={`h-2 ${getESGBgClass(avgESGScore)}`}
+                        />
                       </div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className="text-sm text-muted-foreground"
-                        data-label="Social"
-                      >
-                        Social
-                      </div>
-                      <div
-                        className={`text-xl font-semibold ${getESGColorClass(avgSocial)}`}
-                        data-testid="s-score"
-                      >
-                        {avgSocial || "N/A"}
-                      </div>
-                    </div>
-                    <div className="text-center">
-                      <div
-                        className="text-sm text-muted-foreground"
-                        data-label="Governance"
-                      >
-                        Governance
-                      </div>
-                      <div
-                        className={`text-xl font-semibold ${getESGColorClass(avgGovernance)}`}
-                        data-testid="g-score"
-                      >
-                        {avgGovernance || "N/A"}
+                      <div className="flex gap-4 text-xs">
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">E</span>
+                          <span
+                            className={`font-semibold ${getESGColorClass(avgEnvironmental)}`}
+                            data-testid="e-score"
+                          >
+                            {avgEnvironmental || "–"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">S</span>
+                          <span
+                            className={`font-semibold ${getESGColorClass(avgSocial)}`}
+                            data-testid="s-score"
+                          >
+                            {avgSocial || "–"}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <span className="text-muted-foreground">G</span>
+                          <span
+                            className={`font-semibold ${getESGColorClass(avgGovernance)}`}
+                            data-testid="g-score"
+                          >
+                            {avgGovernance || "–"}
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  <div className="text-center py-4">
+                    <p className="text-muted-foreground">
+                      No holdings yet. Use the AI chat to add stocks to your
+                      portfolio.
+                    </p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Try: "Add 10 shares of AAPL"
+                    </p>
+                  </div>
+                )}
               </CardContent>
             </Card>
+
+            {hasHoldings && (
+              <>
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  <div className="lg:col-span-2">
+                    <PerformanceChart
+                      data={performanceData}
+                      showBenchmark
+                      benchmarkLabel="MSCI ESG Leaders"
+                    />
+                  </div>
+
+                  <Card data-testid="allocation-chart">
+                    <CardHeader className="pb-2">
+                      <CardTitle>Sector Allocation</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="h-52">
+                        <ResponsiveContainer width="100%" height="100%">
+                          <PieChart>
+                            <Pie
+                              data={sectorAllocation}
+                              cx="50%"
+                              cy="50%"
+                              innerRadius={50}
+                              outerRadius={70}
+                              paddingAngle={2}
+                              dataKey="value"
+                              nameKey="name"
+                            >
+                              {sectorAllocation.map((entry) => (
+                                <Cell
+                                  key={entry.name}
+                                  fill={SECTOR_COLORS[entry.name] || "#6b7280"}
+                                />
+                              ))}
+                            </Pie>
+                            <Tooltip
+                              formatter={(value: number) => [
+                                formatAmount(value),
+                                "Value",
+                              ]}
+                            />
+                            <Legend
+                              wrapperStyle={{ fontSize: "12px" }}
+                              formatter={(value) => (
+                                <span className="text-xs">{value}</span>
+                              )}
+                            />
+                          </PieChart>
+                        </ResponsiveContainer>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Third row: ESG Contributors + Controversy Alerts */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
+                  {/* Top ESG Contributors */}
+                  <Card className="lg:col-span-2">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                        Top ESG Contributors
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        {topESGContributors.map((item) => (
+                          <div
+                            key={item.symbol}
+                            className="flex items-center justify-between"
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="font-medium text-sm">
+                                {item.symbol}
+                              </span>
+                              <span className="text-xs text-muted-foreground truncate max-w-[120px]">
+                                {item.name}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                              <div className="text-right">
+                                <span
+                                  className={`text-sm font-medium ${getESGColorClass(item.esgScore)}`}
+                                >
+                                  {item.esgScore}
+                                </span>
+                                <span className="text-xs text-muted-foreground ml-1">
+                                  ESG
+                                </span>
+                              </div>
+                              <div className="w-16 text-right">
+                                <span className="text-xs text-muted-foreground">
+                                  {item.weight.toFixed(1)}%
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+
+                  {/* Controversy Alerts */}
+                  <Card>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center gap-2 text-base">
+                        <AlertTriangle className="h-4 w-4 text-amber-500" />
+                        Risk Alerts
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      {controversyAlerts.length > 0 ? (
+                        <div className="space-y-2">
+                          {controversyAlerts.map((item) => (
+                            <div
+                              key={item.symbol}
+                              className="flex items-center justify-between"
+                            >
+                              <span className="font-medium text-sm">
+                                {item.symbol}
+                              </span>
+                              <span
+                                className={`text-xs px-2 py-0.5 rounded ${
+                                  item.level === 5
+                                    ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                                    : item.level === 4
+                                      ? "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400"
+                                      : "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400"
+                                }`}
+                              >
+                                {item.levelLabel}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-green-600 dark:text-green-400">
+                          No controversy alerts
+                        </p>
+                      )}
+                    </CardContent>
+                  </Card>
+                </div>
+              </>
+            )}
           </div>
         );
 

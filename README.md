@@ -32,7 +32,7 @@ An AI-powered ESG investment advisory platform featuring conversational portfoli
 
 ## Tech Stack
 
-- **Framework:** Next.js 15 (App Router) + React 19
+- **Framework:** Next.js 16 (App Router) + React 19
 - **Styling:** Tailwind CSS 4 + shadcn/ui
 - **AI:** OpenRouter API (LLM integration)
 - **Charts:** Recharts

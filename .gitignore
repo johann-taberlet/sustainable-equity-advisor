@@ -44,4 +44,9 @@ next-env.d.ts
 
 # documentation (generated)
 /docs
+
+# local tooling
 .playwright-mcp/
+.claude/
+.beads/
+CLAUDE.md

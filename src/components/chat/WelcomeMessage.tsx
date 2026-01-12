@@ -9,11 +9,17 @@ interface WelcomeMessageProps {
 export function WelcomeMessage({ onAction }: WelcomeMessageProps) {
   return (
     <div className="rounded-lg bg-muted p-4 space-y-4">
-      <div>
+      <div className="space-y-2">
         <p className="text-sm">
-          I'm your ESG investment advisor at Montblanc Capital. I can help you
-          manage your sustainable portfolio, research stocks, and track your
-          investments.
+          Welcome to Montblanc Capital! I'm your ESG investment advisor. I've
+          set up a sample portfolio with 5 holdings across different sectors to
+          show you around.
+        </p>
+        <p className="text-sm text-muted-foreground">
+          Try asking me to{" "}
+          <span className="text-primary">"add 10 shares of NVDA"</span> or{" "}
+          <span className="text-primary">"compare my holdings"</span> to see how
+          I can help manage your sustainable investments.
         </p>
       </div>
 

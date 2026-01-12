@@ -96,7 +96,49 @@ export default function Home() {
   const [selectedPortfolioId, setSelectedPortfolioId] = useState(
     portfolios[0].id,
   );
-  const [holdings, setHoldings] = useState<Holding[]>([]); // Values stored in USD
+  // Sample portfolio for demo - diverse sectors and ESG scores
+  const [holdings, setHoldings] = useState<Holding[]>([
+    {
+      symbol: "AAPL",
+      name: "Apple Inc.",
+      shares: 15,
+      value: 15 * 175, // ~$2,625
+      esgScore: 83,
+      sector: "Technology",
+    },
+    {
+      symbol: "MSFT",
+      name: "Microsoft Corporation",
+      shares: 10,
+      value: 10 * 375, // ~$3,750
+      esgScore: 87,
+      sector: "Technology",
+    },
+    {
+      symbol: "JNJ",
+      name: "Johnson & Johnson",
+      shares: 8,
+      value: 8 * 155, // ~$1,240
+      esgScore: 72,
+      sector: "Healthcare",
+    },
+    {
+      symbol: "XOM",
+      name: "Exxon Mobil Corporation",
+      shares: 5,
+      value: 5 * 105, // ~$525 - lower ESG, controversy candidate
+      esgScore: 45,
+      sector: "Energy",
+    },
+    {
+      symbol: "NEE",
+      name: "NextEra Energy Inc.",
+      shares: 12,
+      value: 12 * 75, // ~$900 - clean energy leader
+      esgScore: 91,
+      sector: "Utilities",
+    },
+  ]); // Values stored in USD
   const [aiPanelOpen, setAiPanelOpen] = useState(true);
   const [holdingsFilter, setHoldingsFilter] = useState<HoldingsFilter | null>(
     null,

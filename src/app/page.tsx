@@ -353,7 +353,7 @@ export default function Home() {
         )
       : 0;
 
-  // Top ESG contributors - sorted by weighted contribution to portfolio score
+  // Top ESG contributors - sorted by ESG score descending
   const topESGContributors = useMemo(() => {
     if (holdings.length === 0 || totalValue === 0) return [];
 
@@ -365,7 +365,7 @@ export default function Home() {
         weight: (h.value / totalValue) * 100,
         contribution: (h.esgScore * h.value) / totalValue,
       }))
-      .sort((a, b) => b.contribution - a.contribution)
+      .sort((a, b) => b.esgScore - a.esgScore)
       .slice(0, 5);
   }, [holdings, totalValue]);
 

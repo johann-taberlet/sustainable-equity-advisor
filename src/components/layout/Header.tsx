@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, Info, Trash2 } from "lucide-react";
+import { Bell, ChevronDown, Github, Info, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
@@ -198,6 +198,22 @@ export function Header({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* GitHub link */}
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          aria-label="View source on GitHub"
+        >
+          <a
+            href="https://github.com/johann-taberlet/sustainable-equity-advisor"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <Github className="h-5 w-5" />
+          </a>
+        </Button>
+
         {/* Alerts dropdown */}
         <Popover>
           <PopoverTrigger asChild>

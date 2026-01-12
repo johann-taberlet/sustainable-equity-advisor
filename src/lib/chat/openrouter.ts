@@ -106,23 +106,29 @@ You can execute dashboard actions by including action JSON in your response. Use
    Payload: { sector?: string, minEsg?: number, maxEsg?: number }
    Example: {"action": {"type": "filter_holdings", "payload": {"sector": "Technology", "minEsg": 70}}}
 
-2. **add_holding** - Add a new position to the portfolio
+2. **add_holding** - Add/buy shares (creates new position or adds to existing)
    Payload: { symbol: string, shares: number, name?: string }
    Example: {"action": {"type": "add_holding", "payload": {"symbol": "GOOGL", "shares": 10, "name": "Alphabet Inc."}}}
 
-3. **remove_holding** - Remove a position from the portfolio
+3. **sell_holding** - Sell/reduce shares from an existing position (subtracts shares)
+   Payload: { symbol: string, shares: number }
+   Use when: user says "sell X shares", "reduce position", "trim", etc.
+   Example: {"action": {"type": "sell_holding", "payload": {"symbol": "TSLA", "shares": 15}}}
+
+4. **remove_holding** - Remove ENTIRE position from portfolio (all shares)
    Payload: { symbol: string }
+   Use when: user says "remove", "delete", "close position", "sell all"
    Example: {"action": {"type": "remove_holding", "payload": {"symbol": "AAPL"}}}
 
-4. **create_alert** - Set up a price or ESG alert
+5. **create_alert** - Set up a price or ESG alert
    Payload: { symbol: string, alertType: "price_above" | "price_below" | "esg_change", value: number }
    Example: {"action": {"type": "create_alert", "payload": {"symbol": "MSFT", "alertType": "price_above", "value": 400}}}
 
-5. **navigate** - Navigate to a dashboard section
+6. **navigate** - Navigate to a dashboard section
    Payload: { section: "dashboard" | "holdings" | "esg" | "screening" | "settings" }
    Example: {"action": {"type": "navigate", "payload": {"section": "holdings"}}}
 
-6. **show_comparison** - Show ESG comparison chart between symbols (fetches real ESG data)
+7. **show_comparison** - Show ESG comparison chart between symbols (fetches real ESG data)
    Payload: { symbols: string[] }
    Example: {"action": {"type": "show_comparison", "payload": {"symbols": ["AAPL", "MSFT"]}}}
 

@@ -16,6 +16,7 @@ interface ActionConfirmationProps {
     | "add_holding"
     | "remove_holding"
     | "update_holding"
+    | "sell_holding"
     | "filter_holdings"
     | "create_alert"
     | "navigate";
@@ -40,24 +41,29 @@ export function ActionConfirmation({
 }: ActionConfirmationProps) {
   const isAdd = actionType === "add_holding" || actionType === "update_holding";
   const isRemove = actionType === "remove_holding";
+  const isSell = actionType === "sell_holding";
 
   const getBgColor = () => {
     if (isAdd)
       return "bg-green-50 dark:bg-green-950/30 border-green-200 dark:border-green-800";
     if (isRemove)
       return "bg-red-50 dark:bg-red-950/30 border-red-200 dark:border-red-800";
+    if (isSell)
+      return "bg-amber-50 dark:bg-amber-950/30 border-amber-200 dark:border-amber-800";
     return "bg-card border-border";
   };
 
   const getIconBg = () => {
     if (isAdd) return "bg-green-100 dark:bg-green-900/50";
     if (isRemove) return "bg-red-100 dark:bg-red-900/50";
+    if (isSell) return "bg-amber-100 dark:bg-amber-900/50";
     return "bg-muted";
   };
 
   const getIconColor = () => {
     if (isAdd) return "text-green-600 dark:text-green-400";
     if (isRemove) return "text-red-600 dark:text-red-400";
+    if (isSell) return "text-amber-600 dark:text-amber-400";
     return "text-primary";
   };
 
@@ -68,6 +74,8 @@ export function ActionConfirmation({
       case "update_holding":
         return <TrendingUp className="h-4 w-4" />;
       case "remove_holding":
+        return <Minus className="h-4 w-4" />;
+      case "sell_holding":
         return <Minus className="h-4 w-4" />;
       case "filter_holdings":
         return <Filter className="h-4 w-4" />;
@@ -88,6 +96,8 @@ export function ActionConfirmation({
           : "Position Added";
       case "remove_holding":
         return "Position Removed";
+      case "sell_holding":
+        return newTotal === 0 ? "Position Closed" : "Shares Sold";
       case "update_holding":
         return "Position Updated";
       case "filter_holdings":
@@ -111,6 +121,11 @@ export function ActionConfirmation({
         return `${shares} shares of ${displayName}`;
       case "remove_holding":
         return `${displayName} removed from portfolio`;
+      case "sell_holding":
+        if (newTotal === 0) {
+          return `Sold all ${shares} shares of ${displayName}`;
+        }
+        return `-${shares} shares of ${displayName} (${newTotal} remaining)`;
       case "update_holding":
         return `${displayName} updated to ${shares} shares`;
       case "filter_holdings":

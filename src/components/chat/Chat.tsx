@@ -19,6 +19,8 @@ function generateActionText(action: ParsedAction): string {
       return `Adding ${payload.shares || 1} shares of ${payload.symbol} to your portfolio.`;
     case "remove_holding":
       return `Removing ${payload.symbol} from your portfolio.`;
+    case "sell_holding":
+      return `Selling ${payload.shares || 0} shares of ${payload.symbol}.`;
     case "update_holding":
       return `Updating ${payload.symbol} to ${payload.shares} shares.`;
     case "create_alert":
@@ -35,14 +37,18 @@ function generateActionText(action: ParsedAction): string {
 }
 
 export interface PortfolioAction {
-  type: "add_holding" | "remove_holding" | "update_holding";
+  type: "add_holding" | "remove_holding" | "update_holding" | "sell_holding";
   symbol: string;
   shares?: number;
   name?: string;
 }
 
 export interface ActionResult {
-  actionType: "add_holding" | "remove_holding" | "update_holding";
+  actionType:
+    | "add_holding"
+    | "remove_holding"
+    | "update_holding"
+    | "sell_holding";
   symbol: string;
   shares?: number;
   name?: string;
@@ -183,6 +189,7 @@ export function Chat({
           "add_holding",
           "remove_holding",
           "update_holding",
+          "sell_holding",
         ];
         const hasPortfolioActions =
           parsed.actions?.some((a) => portfolioActionTypes.includes(a.type)) ||
@@ -389,6 +396,27 @@ export function Chat({
                   actionType: "update_holding",
                   symbol: payload.symbol,
                   shares: payload.shares,
+                };
+              }
+            } else if (action.type === "sell_holding") {
+              const payload = action.payload as {
+                symbol?: string;
+                shares?: number;
+              };
+              if (payload.symbol && payload.shares) {
+                const previousShares = getHoldingShares?.(payload.symbol) || 0;
+                const newTotal = previousShares - payload.shares;
+                onPortfolioUpdate?.({
+                  type: "sell_holding",
+                  symbol: payload.symbol,
+                  shares: payload.shares,
+                });
+                actionResult = {
+                  actionType: "sell_holding",
+                  symbol: payload.symbol,
+                  shares: payload.shares,
+                  previousShares,
+                  newTotal: Math.max(0, newTotal),
                 };
               }
             }

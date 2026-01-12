@@ -221,6 +221,30 @@ export default function Home() {
           }
           return prev;
         });
+      } else if (type === "sell_holding") {
+        setHoldings((prev) => {
+          const existingIndex = prev.findIndex((h) => h.symbol === symbol);
+          if (existingIndex >= 0 && shares !== undefined) {
+            const updated = [...prev];
+            const existing = updated[existingIndex];
+            const newShares = existing.shares - shares;
+
+            // If selling all or more shares, remove the position
+            if (newShares <= 0) {
+              return prev.filter((h) => h.symbol !== symbol);
+            }
+
+            // Otherwise, reduce the position
+            const pricePerShare = existing.value / existing.shares;
+            updated[existingIndex] = {
+              ...existing,
+              shares: newShares,
+              value: newShares * pricePerShare,
+            };
+            return updated;
+          }
+          return prev;
+        });
       }
     },
     [holdings, fetchStockPrice],

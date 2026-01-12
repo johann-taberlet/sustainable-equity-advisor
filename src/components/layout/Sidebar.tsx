@@ -1,6 +1,13 @@
 "use client";
 
-import { Briefcase, Filter, Github, LayoutDashboard, Leaf } from "lucide-react";
+import {
+  Briefcase,
+  ExternalLink,
+  Filter,
+  Github,
+  LayoutDashboard,
+  Leaf,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -62,21 +69,21 @@ export function Sidebar({ activeSection, onNavigate }: SidebarProps) {
       </nav>
 
       {/* Footer */}
-      <div className="border-t p-4">
-        <div className="flex items-center justify-between">
-          <p className="text-xs text-muted-foreground">
-            &copy; 2026 Montblanc Capital
-          </p>
+      <div className="border-t p-2">
+        <Button variant="ghost" className="w-full justify-start gap-3" asChild>
           <a
             href="https://github.com/johann-taberlet/sustainable-equity-advisor"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-muted-foreground hover:text-foreground transition-colors"
-            aria-label="View source on GitHub"
           >
-            <Github className="h-4 w-4" />
+            <Github className="h-5 w-5" />
+            <span className="flex-1 text-left">Source Code</span>
+            <ExternalLink className="h-4 w-4 text-muted-foreground" />
           </a>
-        </div>
+        </Button>
+        <p className="text-xs text-muted-foreground text-center mt-2">
+          &copy; 2026 Montblanc Capital
+        </p>
       </div>
     </div>
   );

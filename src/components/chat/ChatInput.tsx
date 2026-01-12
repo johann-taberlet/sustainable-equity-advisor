@@ -1,16 +1,16 @@
 "use client";
 
+import { Send } from "lucide-react";
 import {
-  useState,
+  type FormEvent,
   forwardRef,
+  type KeyboardEvent,
   useImperativeHandle,
   useRef,
-  type FormEvent,
-  type KeyboardEvent,
+  useState,
 } from "react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Send } from "lucide-react";
 
 interface ChatInputProps {
   onSend: (message: string) => void;

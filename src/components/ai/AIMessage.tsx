@@ -1,9 +1,9 @@
 "use client";
 
-import { cn } from "@/lib/utils";
-import { parseA2UIMessage } from "@/lib/a2ui";
 import { A2UIRenderer } from "@/components/a2ui";
+import { parseA2UIMessage } from "@/lib/a2ui";
 import type { ChatMessage } from "@/lib/chat/types";
+import { cn } from "@/lib/utils";
 
 interface AIMessageProps {
   message: ChatMessage;

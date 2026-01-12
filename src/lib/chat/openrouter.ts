@@ -234,8 +234,8 @@ async function executeTool(
   toolName: string,
   args: Record<string, unknown>,
   holdings: PortfolioHolding[],
-  currency: string = "CHF",
-  exchangeRate: number = 1,
+  _currency: string = "CHF",
+  _exchangeRate: number = 1,
 ): Promise<{ result: unknown; toolUsed: string }> {
   if (toolName === "get_portfolio") {
     // Return USD values with baseUSD flag - component will convert reactively

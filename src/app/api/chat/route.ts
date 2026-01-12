@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import {
   callOpenRouter,
   type OpenRouterMessage,
@@ -16,7 +16,13 @@ interface ChatRequestBody {
 export async function POST(request: NextRequest) {
   try {
     const body: ChatRequestBody = await request.json();
-    const { message, history = [], holdings = [], currency = "CHF", exchangeRate = 1 } = body;
+    const {
+      message,
+      history = [],
+      holdings = [],
+      currency = "CHF",
+      exchangeRate = 1,
+    } = body;
 
     if (!message || typeof message !== "string") {
       return NextResponse.json(
@@ -30,7 +36,7 @@ export async function POST(request: NextRequest) {
 
     // Debug: log key presence and first few chars
     console.log("API Key present:", !!apiKey);
-    console.log("API Key prefix:", apiKey?.substring(0, 10) + "...");
+    console.log("API Key prefix:", `${apiKey?.substring(0, 10)}...`);
 
     if (!apiKey) {
       console.error("OPENROUTER_API_KEY is not set");
@@ -55,7 +61,13 @@ export async function POST(request: NextRequest) {
         { role: "user" as const, content: message },
       ];
 
-      const result = await callOpenRouter(messages, apiKey, holdings, currency, exchangeRate);
+      const result = await callOpenRouter(
+        messages,
+        apiKey,
+        holdings,
+        currency,
+        exchangeRate,
+      );
 
       return NextResponse.json({
         message: result.content,
@@ -64,7 +76,10 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       console.error("OpenRouter API error:", error);
-      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
+      console.error(
+        "Error details:",
+        JSON.stringify(error, Object.getOwnPropertyNames(error)),
+      );
 
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";

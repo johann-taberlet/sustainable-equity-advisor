@@ -79,8 +79,8 @@ export function ESGComparisonChart({ companies }: ESGComparisonChartProps) {
               />
               {showBreakdown && <Legend />}
               <Bar dataKey="ESG" name="Overall ESG" radius={[0, 4, 4, 0]}>
-                {data.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={getBarColor(entry.ESG)} />
+                {data.map((entry) => (
+                  <Cell key={entry.name} fill={getBarColor(entry.ESG)} />
                 ))}
               </Bar>
             </BarChart>

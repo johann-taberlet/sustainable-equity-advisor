@@ -5,12 +5,12 @@
  * API Docs: https://site.financialmodelingprep.com/developer/docs/stable/esg-ratings
  */
 
-import { normalizeNumericScore } from "./normalize";
 import {
+  type CuratedESGData,
   getCuratedESGData,
   getAvailableSymbols as getCuratedSymbols,
-  type CuratedESGData,
 } from "@/lib/esg/curated-data";
+import { normalizeNumericScore } from "./normalize";
 
 // Check if we should use curated data (for tests or when no API key)
 const USE_MOCK_FMP = process.env.USE_MOCK_FMP === "true";

@@ -2,14 +2,14 @@
 
 import {
   createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
-  useMemo,
   type ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
 } from "react";
-import { type Currency, CURRENCIES } from "./index";
+import { CURRENCIES, type Currency } from "./index";
 
 const STORAGE_KEY = "currency_preference";
 const RATES_STORAGE_KEY = "exchange_rates_cache";
@@ -140,7 +140,7 @@ export function CurrencyProvider({ children }: { children: ReactNode }) {
     (amountUSD: number, decimals = 0) => {
       const converted = amountUSD * exchangeRate;
       const currencyInfo = CURRENCIES.find((c) => c.value === currency);
-      const symbol = currencyInfo?.symbol || currency;
+      const _symbol = currencyInfo?.symbol || currency;
 
       const formatted = converted.toLocaleString("en-CH", {
         minimumFractionDigits: decimals,

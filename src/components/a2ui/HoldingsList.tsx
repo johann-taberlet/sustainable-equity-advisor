@@ -12,12 +12,16 @@ import {
 import type { HoldingsListProps } from "@/lib/a2ui/types";
 import { useCurrency } from "@/lib/currency";
 
-export function HoldingsList({ holdings, currency: currencyProp, baseUSD = false }: HoldingsListProps) {
+export function HoldingsList({
+  holdings,
+  currency: currencyProp,
+  baseUSD = false,
+}: HoldingsListProps) {
   // Use context for reactive currency conversion when baseUSD is true
-  const { currency: contextCurrency, formatAmount, convertAmount } = useCurrency();
+  const { currency: contextCurrency, convertAmount } = useCurrency();
 
   // Determine which currency to use
-  const displayCurrency = baseUSD ? contextCurrency : (currencyProp || "CHF");
+  const displayCurrency = baseUSD ? contextCurrency : currencyProp || "CHF";
 
   function formatValue(value: number): string {
     const displayValue = baseUSD ? convertAmount(value) : value;

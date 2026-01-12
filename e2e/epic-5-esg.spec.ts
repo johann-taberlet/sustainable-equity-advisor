@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Epic 5: ESG Data & Scoring
@@ -79,7 +79,7 @@ test.describe("Epic 5: ESG Data & Scoring", () => {
 
     for (let i = 0; i < Math.min(count, 5); i++) {
       const scoreText = await esgScores.nth(i).textContent();
-      const numericScore = parseInt(scoreText?.match(/\d+/)?.[0] || "-1");
+      const numericScore = parseInt(scoreText?.match(/\d+/)?.[0] || "-1", 10);
 
       // Score should be in valid range
       expect(numericScore).toBeGreaterThanOrEqual(0);

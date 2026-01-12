@@ -1,15 +1,15 @@
 "use client";
 
-import ReactMarkdown from "react-markdown";
 import { Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { parseA2UIMessage } from "@/lib/a2ui";
+import ReactMarkdown from "react-markdown";
 import {
   A2UIRenderer,
   ActionConfirmation,
   DataQueryBadge,
 } from "@/components/a2ui";
+import { parseA2UIMessage } from "@/lib/a2ui";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat/types";
+import { cn } from "@/lib/utils";
 import type { ActionResult } from "./Chat";
 
 interface ChatMessageProps {

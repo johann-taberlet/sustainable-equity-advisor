@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, X, AlertTriangle } from "lucide-react";
+import { AlertTriangle, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { PendingAction } from "@/lib/ai/actions";

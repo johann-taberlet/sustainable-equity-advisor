@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Epic 4: Portfolio Management
@@ -220,7 +220,7 @@ test.describe("Epic 4: Portfolio Management", () => {
 
     // Should show numeric score (0-100)
     expect(scoreText).toMatch(/\d+/);
-    const numericScore = parseInt(scoreText?.match(/\d+/)?.[0] || "0");
+    const numericScore = parseInt(scoreText?.match(/\d+/)?.[0] || "0", 10);
     expect(numericScore).toBeGreaterThanOrEqual(0);
     expect(numericScore).toBeLessThanOrEqual(100);
   });

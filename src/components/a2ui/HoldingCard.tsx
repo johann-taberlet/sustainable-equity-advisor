@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 interface HoldingCardProps {
   symbol: string;

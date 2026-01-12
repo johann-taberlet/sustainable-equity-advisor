@@ -22,7 +22,7 @@ function extractJsonObjects(
   while (i < content.length) {
     if (content[i] === "{") {
       let depth = 0;
-      let start = i;
+      const start = i;
       let inString = false;
       let escaped = false;
 

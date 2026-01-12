@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Epic 2: A2UI Integration
@@ -200,7 +200,7 @@ test.describe("Epic 2: A2UI Integration", () => {
     await page.getByRole("tab", { name: /portfolio|dashboard/i }).click();
 
     // Get initial portfolio value display
-    const initialValue = await page
+    const _initialValue = await page
       .locator("[data-testid='portfolio-value']")
       .textContent()
       .catch(() => null);

@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useMemo } from "react";
 import {
   ArrowDown,
   ArrowUp,
@@ -8,6 +7,7 @@ import {
   MoreHorizontal,
   Trash2,
 } from "lucide-react";
+import { useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -31,8 +31,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 export interface HoldingRow {
   symbol: string;
@@ -91,7 +91,7 @@ export function HoldingsTablePro({
     // Apply ESG filter
     if (minEsgFilter) {
       const minEsg = parseInt(minEsgFilter, 10);
-      if (!isNaN(minEsg)) {
+      if (!Number.isNaN(minEsg)) {
         result = result.filter((h) => h.esgScore >= minEsg);
       }
     }

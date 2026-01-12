@@ -1,6 +1,6 @@
 "use client";
 
-import { TrendingDown, TrendingUp, Leaf, PieChart } from "lucide-react";
+import { Leaf, PieChart, TrendingDown, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Skeleton } from "@/components/ui/skeleton";

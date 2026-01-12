@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { AlertCircle, Loader2, Minus, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -13,7 +14,6 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Alert, AlertDescription } from "@/components/ui/alert";
 import { getCuratedESGData } from "@/lib/esg/curated-data";
 
 interface StockInfo {
@@ -105,7 +105,7 @@ export function AddStockModal({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = parseInt(e.target.value, 10);
-    if (!isNaN(value) && value >= 1) {
+    if (!Number.isNaN(value) && value >= 1) {
       setQuantity(value);
     }
   };

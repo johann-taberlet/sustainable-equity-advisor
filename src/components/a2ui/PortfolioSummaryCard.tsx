@@ -1,7 +1,7 @@
 "use client";
 
+import { TrendingDown, TrendingUp } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
 import type { PortfolioSummaryCardProps } from "@/lib/a2ui/types";
 import { useCurrency } from "@/lib/currency";
 

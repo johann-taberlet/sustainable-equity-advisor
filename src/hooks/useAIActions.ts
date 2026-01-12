@@ -3,10 +3,10 @@
 import { useCallback, useState } from "react";
 import type { NavigationSection } from "@/components/layout/Sidebar";
 import {
-  type AIAction,
   type ActionResult,
-  type PendingAction,
+  type AIAction,
   getActionDescription,
+  type PendingAction,
   validateAction,
 } from "@/lib/ai/actions";
 

@@ -1,16 +1,16 @@
 "use client";
 
+import type { ComponentType } from "react";
 import type { A2UIComponent } from "@/lib/a2ui/types";
-import { PortfolioSummaryCard } from "./PortfolioSummaryCard";
-import { ESGScoreGauge } from "./ESGScoreGauge";
-import { ESGRadarChart } from "./ESGRadarChart";
-import { ESGComparisonChart } from "./ESGComparisonChart";
-import { HoldingsList } from "./HoldingsList";
-import { HoldingCard } from "./HoldingCard";
-import { StockInfoCard } from "./StockInfoCard";
 import { ActionButton } from "./ActionButton";
 import { ActionConfirmation } from "./ActionConfirmation";
-import type { ComponentType } from "react";
+import { ESGComparisonChart } from "./ESGComparisonChart";
+import { ESGRadarChart } from "./ESGRadarChart";
+import { ESGScoreGauge } from "./ESGScoreGauge";
+import { HoldingCard } from "./HoldingCard";
+import { HoldingsList } from "./HoldingsList";
+import { PortfolioSummaryCard } from "./PortfolioSummaryCard";
+import { StockInfoCard } from "./StockInfoCard";
 
 // Component registry mapping A2UI component names to React components
 // Using 'unknown' cast to handle varying prop types safely
@@ -80,10 +80,12 @@ export function A2UIRenderer({ components, onAction }: A2UIRendererProps) {
 
   return (
     <div className="space-y-3" data-testid="a2ui-component">
-      {groupedComponents.map((group, groupIndex) => {
+      {groupedComponents.map((group) => {
+        // Use the first item's index as a stable key since items maintain their original order
+        const groupKey = `group-${group.items[0].index}`;
         if (group.type === "button-group") {
           return (
-            <div key={`group-${groupIndex}`} className="flex flex-wrap gap-2">
+            <div key={groupKey} className="flex flex-wrap gap-2">
               {group.items.map(({ component, index }) => {
                 const Component = componentRegistry[component.component];
                 return Component ? (

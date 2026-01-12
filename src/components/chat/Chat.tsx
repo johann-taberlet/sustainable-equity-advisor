@@ -1,11 +1,11 @@
 "use client";
 
-import { useState, useCallback, useRef, useEffect } from "react";
-import { ChatMessage } from "./ChatMessage";
-import { ChatInput, type ChatInputHandle } from "./ChatInput";
-import { parseA2UIMessage, type ParsedAction } from "@/lib/a2ui/parser";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { type ParsedAction, parseA2UIMessage } from "@/lib/a2ui/parser";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { useCurrency } from "@/lib/currency";
+import { ChatInput, type ChatInputHandle } from "./ChatInput";
+import { ChatMessage } from "./ChatMessage";
 
 // Generate fallback message text when AI only returns action JSON
 function generateActionText(action: ParsedAction): string {
@@ -125,7 +125,7 @@ export function Chat({
 
   useEffect(() => {
     scrollToBottom();
-  }, [messages, scrollToBottom]);
+  }, [scrollToBottom]);
 
   const handleSend = useCallback(
     async (content: string) => {
@@ -184,8 +184,8 @@ export function Chat({
         let displayContent = data.message;
         const hasAnyActions = parsed.actions && parsed.actions.length > 0;
         if (hasAnyActions && !parsed.text?.trim()) {
-          const actionTexts = parsed.actions!.map(generateActionText);
-          displayContent = actionTexts.join("\n") + "\n" + data.message;
+          const actionTexts = parsed.actions?.map(generateActionText);
+          displayContent = `${actionTexts.join("\n")}\n${data.message}`;
         }
 
         const messageId = crypto.randomUUID();
@@ -215,9 +215,10 @@ export function Chat({
           // Small delay to show the spinner
           await new Promise((resolve) => setTimeout(resolve, 500));
 
-          for (const action of parsed.actions!.filter((a) =>
+          const portfolioActions = (parsed.actions ?? []).filter((a) =>
             portfolioActionTypes.includes(a.type),
-          )) {
+          );
+          for (const action of portfolioActions) {
             let actionResult: ActionResult | undefined;
 
             if (action.type === "add_holding") {

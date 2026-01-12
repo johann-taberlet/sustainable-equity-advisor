@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState, useEffect } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Cell,
   Legend,
@@ -10,15 +10,15 @@ import {
   Tooltip,
 } from "recharts";
 import { toast } from "sonner";
+import { AIPanel } from "@/components/ai/AIPanel";
+import { Chat, type PortfolioAction } from "@/components/chat";
+import { ESGDashboard } from "@/components/dashboard/ESGDashboard";
+import { ESGScreening } from "@/components/dashboard/ESGScreening";
+import { HoldingsTablePro } from "@/components/dashboard/HoldingsTablePro";
+import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Header } from "@/components/layout/Header";
 import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
-import { AIPanel } from "@/components/ai/AIPanel";
-import { Chat, type PortfolioAction } from "@/components/chat";
-import { HoldingsTablePro } from "@/components/dashboard/HoldingsTablePro";
-import { ESGDashboard } from "@/components/dashboard/ESGDashboard";
-import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
-import { ESGScreening } from "@/components/dashboard/ESGScreening";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { useCurrency } from "@/lib/currency";
@@ -87,7 +87,7 @@ export default function Home() {
   const [aiPanelOpen, setAiPanelOpen] = useState(false);
 
   // Currency from context (reactive to changes)
-  const { currency, formatAmount, convertAmount } = useCurrency();
+  const { formatAmount } = useCurrency();
 
   // Fetch ESG data when holdings change
   useEffect(() => {
@@ -123,7 +123,7 @@ export default function Home() {
     };
 
     fetchESGData();
-  }, [holdings.length]);
+  }, [holdings.length, holdings.map]);
 
   // Fetch real stock price from API (returns USD)
   const fetchStockPrice = useCallback(
@@ -321,8 +321,7 @@ export default function Home() {
                   >
                     {dailyChange >= 0 ? "+" : ""}
                     {dailyChange.toFixed(2)}% ({dailyChange >= 0 ? "+" : ""}
-                    {formatAmount(dailyChangeValue)}
-                    )
+                    {formatAmount(dailyChangeValue)})
                   </div>
                 </div>
               </CardContent>

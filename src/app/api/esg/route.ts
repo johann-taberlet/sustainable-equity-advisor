@@ -1,5 +1,5 @@
-import { NextRequest, NextResponse } from "next/server";
-import { fetchESGData, fetchESGDataBatch, type ESGData } from "@/lib/fmp";
+import { type NextRequest, NextResponse } from "next/server";
+import { type ESGData, fetchESGDataBatch } from "@/lib/fmp";
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;

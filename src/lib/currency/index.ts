@@ -99,7 +99,7 @@ export function formatCurrency(
   locale = "en-CH",
 ): string {
   const currencyInfo = CURRENCIES.find((c) => c.value === currency);
-  const symbol = currencyInfo?.symbol || currency;
+  const _symbol = currencyInfo?.symbol || currency;
 
   // Format number with appropriate decimal places
   const formatted = amount.toLocaleString(locale, {

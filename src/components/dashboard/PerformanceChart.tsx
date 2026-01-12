@@ -1,19 +1,19 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 import {
-  LineChart,
+  CartesianGrid,
   Line,
-  XAxis,
-  YAxis,
+  LineChart,
   ResponsiveContainer,
   Tooltip,
-  CartesianGrid,
+  XAxis,
+  YAxis,
 } from "recharts";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 interface PerformanceDataPoint {
   date: string;
@@ -206,10 +206,9 @@ export function PerformanceChart({
                       </p>
                       <p className="font-data text-sm font-medium">
                         {currencySymbol}{" "}
-                        {convertAmount(point.value).toLocaleString(
-                          "en-CH",
-                          { maximumFractionDigits: 0 },
-                        )}
+                        {convertAmount(point.value).toLocaleString("en-CH", {
+                          maximumFractionDigits: 0,
+                        })}
                       </p>
                       {showBenchmark && point.benchmark !== undefined && (
                         <p className="text-xs text-muted-foreground">

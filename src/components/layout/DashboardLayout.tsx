@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import { cn } from "@/lib/utils";
 import { Menu, X } from "lucide-react";
+import { type ReactNode, useState } from "react";
 import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 interface DashboardLayoutProps {
   sidebar: ReactNode;
@@ -26,10 +26,12 @@ export function DashboardLayout({
     <div className="flex h-screen bg-background text-foreground">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div
-          className="fixed inset-0 z-40 bg-black/50 lg:hidden"
+        <button
+          type="button"
+          className="fixed inset-0 z-40 bg-black/50 lg:hidden cursor-default"
           onClick={() => setSidebarOpen(false)}
           onKeyDown={(e) => e.key === "Escape" && setSidebarOpen(false)}
+          aria-label="Close sidebar"
         />
       )}
 

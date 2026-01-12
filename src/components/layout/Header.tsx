@@ -4,18 +4,18 @@ import { ChevronDown, Info } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { CURRENCIES, useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 function ChatbotIcon({ className }: { className?: string }) {
   return (
@@ -26,7 +26,9 @@ function ChatbotIcon({ className }: { className?: string }) {
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
       className={className}
+      aria-labelledby="chatbot-icon-title"
     >
+      <title id="chatbot-icon-title">AI Assistant</title>
       <rect
         x="4"
         y="6"

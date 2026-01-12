@@ -1,6 +1,6 @@
-import { TrendingUp, TrendingDown, Building2 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { Building2, TrendingDown, TrendingUp } from "lucide-react";
 import { useCurrency } from "@/lib/currency";
+import { cn } from "@/lib/utils";
 
 interface StockInfoCardProps {
   symbol: string;
@@ -55,7 +55,8 @@ export function StockInfoCard({
   const displayCurrency = baseUSD ? contextCurrency : currencyProp;
   const displayPrice = baseUSD ? convertAmount(price) : price;
   const displayChange = baseUSD ? convertAmount(change) : change;
-  const displayMarketCap = baseUSD && marketCap ? convertAmount(marketCap) : marketCap;
+  const displayMarketCap =
+    baseUSD && marketCap ? convertAmount(marketCap) : marketCap;
 
   const isPositive = change >= 0;
   const formattedPrice = new Intl.NumberFormat("en-US", {
@@ -131,7 +132,9 @@ export function StockInfoCard({
       {displayMarketCap && displayMarketCap > 0 && (
         <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
           <Building2 className="h-3.5 w-3.5" />
-          <span>Market Cap: {formatMarketCap(displayMarketCap, displayCurrency)}</span>
+          <span>
+            Market Cap: {formatMarketCap(displayMarketCap, displayCurrency)}
+          </span>
         </div>
       )}
     </div>

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Supabase Integration E2E Tests
@@ -84,7 +84,7 @@ test.describe("Supabase Integration", () => {
       // Get initial portfolio value
       const portfolioValue = page.getByTestId("portfolio-value");
       await expect(portfolioValue).toBeVisible();
-      const initialValue = await portfolioValue.textContent();
+      const _initialValue = await portfolioValue.textContent();
 
       // Refresh page
       await page.reload();

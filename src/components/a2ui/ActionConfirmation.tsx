@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  Check,
-  Plus,
-  Minus,
-  Filter,
-  Bell,
   ArrowRight,
+  Bell,
+  Check,
+  Filter,
+  Minus,
+  Plus,
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -102,16 +102,17 @@ export function ActionConfirmation({
   };
 
   const getDescription = () => {
+    const displayName = name ? `${name} (${symbol})` : symbol;
     switch (actionType) {
       case "add_holding":
         if (previousShares && previousShares > 0) {
-          return `+${shares} shares of ${symbol} (${newTotal} total)`;
+          return `+${shares} shares of ${displayName} (${newTotal} total)`;
         }
-        return `${shares} shares of ${symbol}`;
+        return `${shares} shares of ${displayName}`;
       case "remove_holding":
-        return `${symbol} removed from portfolio`;
+        return `${displayName} removed from portfolio`;
       case "update_holding":
-        return `${symbol} updated to ${shares} shares`;
+        return `${displayName} updated to ${shares} shares`;
       case "filter_holdings":
         return filterCriteria || "Filter applied";
       case "create_alert":

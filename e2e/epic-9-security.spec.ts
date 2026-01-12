@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 /**
  * Epic 9: Security & Rate Limiting
@@ -26,7 +26,10 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
 
     // Or check for grecaptcha object
     const hasGrecaptcha = await page.evaluate(() => {
-      return typeof (window as any).grecaptcha !== "undefined";
+      return (
+        typeof (window as unknown as { grecaptcha?: unknown }).grecaptcha !==
+        "undefined"
+      );
     });
 
     // Or check for reCAPTCHA badge (v3 shows badge)
@@ -117,7 +120,7 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     let initialQuota = 20; // Default
     if ((await quotaIndicator.count()) > 0) {
       const text = await quotaIndicator.first().textContent();
-      initialQuota = parseInt(text?.match(/\d+/)?.[0] || "20");
+      initialQuota = parseInt(text?.match(/\d+/)?.[0] || "20", 10);
     }
 
     const chatInput = page
@@ -141,7 +144,7 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     // Check quota decreased
     if ((await quotaIndicator.count()) > 0) {
       const newText = await quotaIndicator.first().textContent();
-      const newQuota = parseInt(newText?.match(/\d+/)?.[0] || "20");
+      const newQuota = parseInt(newText?.match(/\d+/)?.[0] || "20", 10);
       expect(newQuota).toBeLessThan(initialQuota);
     }
   });
@@ -246,7 +249,7 @@ test.describe("Epic 9: Security & Rate Limiting", () => {
     );
     if ((await quotaIndicator.count()) > 0) {
       const text = await quotaIndicator.first().textContent();
-      const quota = parseInt(text?.match(/\d+/)?.[0] || "20");
+      const quota = parseInt(text?.match(/\d+/)?.[0] || "20", 10);
       // Should be less than initial (20) if session persisted
       expect(quota).toBeLessThan(20);
     }

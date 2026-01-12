@@ -1,5 +1,5 @@
-import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 
 const VALID_TOKEN = process.env.DEMO_ACCESS_TOKEN || "pictet-2026";
 

@@ -51,7 +51,7 @@ async function notifyVisit(request: NextRequest) {
   }
 }
 
-export function proxy(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   const { pathname, searchParams } = request.nextUrl;
 
   // Skip middleware for API routes, static files, and the private page
@@ -73,7 +73,7 @@ export function proxy(request: NextRequest) {
     if (tokenFromUrl === VALID_TOKEN) {
       // Only notify if this is a NEW session (no valid cookie yet)
       if (tokenFromCookie !== VALID_TOKEN) {
-        notifyVisit(request);
+        await notifyVisit(request);
       }
 
       const response = NextResponse.next();

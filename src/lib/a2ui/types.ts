@@ -47,6 +47,8 @@ export interface HoldingProps {
 export interface HoldingsListProps {
   holdings: HoldingProps[];
   currency?: string;
+  /** If true, values are in USD and will be converted using useCurrency */
+  baseUSD?: boolean;
 }
 
 export interface ActionButtonProps {

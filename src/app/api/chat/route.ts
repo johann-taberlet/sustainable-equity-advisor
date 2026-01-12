@@ -64,9 +64,11 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       console.error("OpenRouter API error:", error);
+      console.error("Error details:", JSON.stringify(error, Object.getOwnPropertyNames(error)));
 
       const errorMessage =
         error instanceof Error ? error.message : "An error occurred";
+      console.error("Error message:", errorMessage);
 
       // For rate limits, return specific error
       if (errorMessage.includes("Rate limit")) {

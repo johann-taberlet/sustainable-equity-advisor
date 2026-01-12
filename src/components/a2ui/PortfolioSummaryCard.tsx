@@ -3,19 +3,29 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { TrendingUp, TrendingDown } from "lucide-react";
 import type { PortfolioSummaryCardProps } from "@/lib/a2ui/types";
+import { useCurrency } from "@/lib/currency";
 
 export function PortfolioSummaryCard({
   totalValue,
-  currency,
+  currency: currencyProp,
   change,
   changePercent,
   esgScore,
-}: PortfolioSummaryCardProps) {
+  baseUSD = false,
+}: PortfolioSummaryCardProps & { baseUSD?: boolean }) {
+  // Use context for reactive currency conversion when baseUSD is true
+  const { currency: contextCurrency, convertAmount } = useCurrency();
+
+  // Determine which currency to use and whether to convert
+  const displayCurrency = baseUSD ? contextCurrency : currencyProp;
+  const displayValue = baseUSD ? convertAmount(totalValue) : totalValue;
+  const displayChange = baseUSD ? convertAmount(change) : change;
+
   const isPositive = change >= 0;
   const formattedValue = new Intl.NumberFormat("en-CH", {
     style: "currency",
-    currency: currency,
-  }).format(totalValue);
+    currency: displayCurrency,
+  }).format(displayValue);
 
   return (
     <Card data-a2ui="PortfolioSummaryCard" data-testid="portfolio-summary">
@@ -38,7 +48,7 @@ export function PortfolioSummaryCard({
           )}
           <span>
             {isPositive ? "+" : ""}
-            {currency} {change.toLocaleString("en-CH")} (
+            {displayCurrency} {displayChange.toLocaleString("en-CH")} (
             {changePercent.toFixed(2)}%)
           </span>
         </div>

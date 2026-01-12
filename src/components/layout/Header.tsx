@@ -1,8 +1,13 @@
 "use client";
 
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, Info } from "lucide-react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,6 +136,31 @@ export function Header({
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Demo disclaimer */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="h-7 gap-1 text-xs text-muted-foreground hover:text-foreground"
+            >
+              <Info className="h-3.5 w-3.5" />
+              <span>Demo</span>
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-72 text-sm" align="start">
+            <div className="space-y-2">
+              <p className="font-medium">Demo Limitations</p>
+              <ul className="list-disc pl-4 space-y-1 text-muted-foreground">
+                <li>US market only (NASDAQ, NYSE)</li>
+                <li>ESG scores are static (curated dataset)</li>
+                <li>Stock prices delayed ~15 min</li>
+                <li>Portfolio data is simulated</li>
+              </ul>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {/* Right: Actions */}

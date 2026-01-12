@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 
 interface HoldingCardProps {
   symbol: string;
@@ -7,6 +8,8 @@ interface HoldingCardProps {
   value: number;
   esgScore: number;
   currency?: string;
+  /** If true, values are in USD and will be converted using useCurrency */
+  baseUSD?: boolean;
 }
 
 function getEsgColor(score: number): string {
@@ -27,14 +30,22 @@ export function HoldingCard({
   shares,
   value,
   esgScore,
-  currency = "CHF",
+  currency: currencyProp = "CHF",
+  baseUSD = false,
 }: HoldingCardProps) {
+  // Use context for reactive currency conversion when baseUSD is true
+  const { currency: contextCurrency, convertAmount } = useCurrency();
+
+  // Determine which currency to use and whether to convert
+  const displayCurrency = baseUSD ? contextCurrency : currencyProp;
+  const displayValue = baseUSD ? convertAmount(value) : value;
+
   const formattedValue = new Intl.NumberFormat("de-CH", {
     style: "currency",
-    currency,
+    currency: displayCurrency,
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value);
+  }).format(displayValue);
 
   return (
     <div

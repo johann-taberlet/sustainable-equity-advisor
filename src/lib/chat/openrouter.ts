@@ -238,9 +238,8 @@ async function executeTool(
   exchangeRate: number = 1,
 ): Promise<{ result: unknown; toolUsed: string }> {
   if (toolName === "get_portfolio") {
-    // Holdings values are stored in USD, convert to display currency
+    // Return USD values with baseUSD flag - component will convert reactively
     const totalValueUSD = holdings.reduce((sum, h) => sum + h.value, 0);
-    const totalValue = totalValueUSD * exchangeRate;
     const avgEsg =
       holdings.length > 0
         ? Math.round(
@@ -255,16 +254,17 @@ async function executeTool(
           symbol: h.symbol,
           name: h.name,
           shares: h.shares,
-          value: h.value * exchangeRate, // Convert to display currency
+          value: h.value, // Keep in USD
           esgScore: h.esgScore,
           sector: h.sector,
         })),
         summary: {
           totalHoldings: holdings.length,
-          totalValue,
+          totalValue: totalValueUSD, // Keep in USD
           averageEsgScore: avgEsg,
-          currency,
+          currency: "USD",
         },
+        baseUSD: true,
       },
     };
   }
@@ -284,16 +284,18 @@ async function executeTool(
       };
     }
 
+    // Return USD values with baseUSD flag - component will convert reactively
     return {
       toolUsed: "get_holding",
       result: {
         symbol: holding.symbol,
         name: holding.name,
         shares: holding.shares,
-        value: holding.value * exchangeRate, // Convert to display currency
-        currency,
+        value: holding.value, // Keep in USD
+        currency: "USD",
         esgScore: holding.esgScore,
         sector: holding.sector,
+        baseUSD: true,
       },
     };
   }
@@ -309,19 +311,20 @@ async function executeTool(
       };
     }
 
-    // Convert USD prices to display currency
+    // Return USD values with baseUSD flag - component will convert reactively
     return {
       toolUsed: "get_stock_info",
       result: {
         symbol: stockInfo.symbol,
         name: stockInfo.name,
-        price: stockInfo.price * exchangeRate,
-        change: stockInfo.change * exchangeRate,
+        price: stockInfo.price,
+        change: stockInfo.change,
         changePercent: stockInfo.changePercent,
-        currency: currency,
+        currency: "USD",
         exchange: stockInfo.exchange,
-        marketCap: stockInfo.marketCap * exchangeRate,
+        marketCap: stockInfo.marketCap,
         esgScore: stockInfo.esgScore,
+        baseUSD: true,
       },
     };
   }
@@ -376,6 +379,7 @@ export async function callOpenRouter(
     if (!response.ok) {
       const error = await response.text();
       console.error("OpenRouter API error:", response.status, error);
+      console.error("Model used:", MODEL);
 
       if (response.status === 429) {
         throw new Error("Rate limit exceeded. Please try again in a moment.");

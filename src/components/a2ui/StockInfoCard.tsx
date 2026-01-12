@@ -1,5 +1,6 @@
 import { TrendingUp, TrendingDown, Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useCurrency } from "@/lib/currency";
 
 interface StockInfoCardProps {
   symbol: string;
@@ -11,6 +12,8 @@ interface StockInfoCardProps {
   exchange?: string;
   marketCap?: number;
   esgScore?: number | null;
+  /** If true, values are in USD and will be converted using useCurrency */
+  baseUSD?: boolean;
 }
 
 function getEsgColor(score: number): string {
@@ -39,18 +42,28 @@ export function StockInfoCard({
   price,
   change,
   changePercent,
-  currency = "USD",
+  currency: currencyProp = "USD",
   exchange,
   marketCap,
   esgScore,
+  baseUSD = false,
 }: StockInfoCardProps) {
+  // Use context for reactive currency conversion when baseUSD is true
+  const { currency: contextCurrency, convertAmount } = useCurrency();
+
+  // Determine which currency to use and whether to convert
+  const displayCurrency = baseUSD ? contextCurrency : currencyProp;
+  const displayPrice = baseUSD ? convertAmount(price) : price;
+  const displayChange = baseUSD ? convertAmount(change) : change;
+  const displayMarketCap = baseUSD && marketCap ? convertAmount(marketCap) : marketCap;
+
   const isPositive = change >= 0;
   const formattedPrice = new Intl.NumberFormat("en-US", {
     style: "currency",
-    currency,
+    currency: displayCurrency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
-  }).format(price);
+  }).format(displayPrice);
 
   return (
     <div
@@ -108,17 +121,17 @@ export function StockInfoCard({
           )}
           <span>
             {isPositive ? "+" : ""}
-            {change.toFixed(2)} ({isPositive ? "+" : ""}
+            {displayChange.toFixed(2)} ({isPositive ? "+" : ""}
             {changePercent.toFixed(2)}%)
           </span>
         </div>
       </div>
 
       {/* Market Cap */}
-      {marketCap && marketCap > 0 && (
+      {displayMarketCap && displayMarketCap > 0 && (
         <div className="mt-2 flex items-center gap-1 text-sm text-muted-foreground">
           <Building2 className="h-3.5 w-3.5" />
-          <span>Market Cap: {formatMarketCap(marketCap, currency)}</span>
+          <span>Market Cap: {formatMarketCap(displayMarketCap, displayCurrency)}</span>
         </div>
       )}
     </div>

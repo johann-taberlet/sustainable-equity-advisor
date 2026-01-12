@@ -7,10 +7,6 @@ import { parseA2UIMessage, type ParsedAction } from "@/lib/a2ui/parser";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { useCurrency } from "@/lib/currency";
 
-const MAX_MESSAGES_PER_SESSION = 20;
-const QUOTA_STORAGE_KEY = "chat_quota";
-const IS_DEV = process.env.NODE_ENV === "development";
-
 // Generate fallback message text when AI only returns action JSON
 function generateActionText(action: ParsedAction): string {
   const payload = action.payload as Record<string, unknown>;
@@ -78,30 +74,6 @@ interface ConversationMessage {
   content: string;
 }
 
-// Get remaining quota from localStorage
-function getQuotaFromStorage(): number {
-  if (typeof window === "undefined") return MAX_MESSAGES_PER_SESSION;
-  const stored = localStorage.getItem(QUOTA_STORAGE_KEY);
-  if (!stored) return MAX_MESSAGES_PER_SESSION;
-  const data = JSON.parse(stored);
-  // Reset quota if it's a new day
-  const today = new Date().toDateString();
-  if (data.date !== today) return MAX_MESSAGES_PER_SESSION;
-  return data.remaining;
-}
-
-// Save quota to localStorage
-function saveQuotaToStorage(remaining: number): void {
-  if (typeof window === "undefined") return;
-  localStorage.setItem(
-    QUOTA_STORAGE_KEY,
-    JSON.stringify({
-      remaining,
-      date: new Date().toDateString(),
-    }),
-  );
-}
-
 // Detect if a message is likely to trigger portfolio queries
 function isPortfolioQuery(content: string): boolean {
   const portfolioKeywords = [
@@ -142,16 +114,8 @@ export function Chat({
   >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingMessage, setLoadingMessage] = useState("Thinking...");
-  const [messagesRemaining, setMessagesRemaining] = useState(
-    MAX_MESSAGES_PER_SESSION,
-  );
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<ChatInputHandle>(null);
-
-  // Load quota from storage on mount
-  useEffect(() => {
-    setMessagesRemaining(getQuotaFromStorage());
-  }, []);
 
   const scrollToBottom = useCallback(() => {
     if (scrollRef.current) {
@@ -245,13 +209,6 @@ export function Chat({
           { role: "user", content },
           { role: "assistant", content: data.message },
         ]);
-
-        // Decrement quota (skip in dev mode)
-        if (!IS_DEV) {
-          const newQuota = messagesRemaining - 1;
-          setMessagesRemaining(newQuota);
-          saveQuotaToStorage(newQuota);
-        }
 
         // Execute portfolio actions from the AI response
         if (hasPortfolioActions) {
@@ -348,10 +305,11 @@ export function Chat({
     },
     [
       conversationHistory,
-      messagesRemaining,
       onPortfolioUpdate,
       getHoldingShares,
       holdings,
+      currency,
+      exchangeRate,
     ],
   );
 
@@ -408,31 +366,8 @@ export function Chat({
     [handleSend],
   );
 
-  const isLowQuota = messagesRemaining <= 5;
-
   return (
     <div className="flex h-full flex-col">
-      {/* Quota Indicator - hidden in dev mode */}
-      {!IS_DEV && (
-        <div className="flex items-center justify-end gap-2 px-4 py-2 border-b bg-muted/50">
-          <span
-            data-testid="quota"
-            className={`text-sm ${isLowQuota ? "text-orange-600 dark:text-orange-400 font-medium" : "text-muted-foreground"}`}
-            aria-label={`${messagesRemaining} messages remaining`}
-          >
-            {messagesRemaining} messages remaining
-          </span>
-          {isLowQuota && (
-            <span
-              data-testid="quota-warning"
-              className="text-xs text-orange-600 dark:text-orange-400"
-              aria-label="Low quota warning"
-            >
-              (Low)
-            </span>
-          )}
-        </div>
-      )}
       <div className="flex-1 overflow-y-auto p-4" ref={scrollRef}>
         <div className="space-y-4">
           {messages.map((message) => (

@@ -122,18 +122,15 @@ You can execute dashboard actions by including action JSON in your response. Use
    Payload: { section: "dashboard" | "holdings" | "esg" | "screening" | "settings" }
    Example: {"action": {"type": "navigate", "payload": {"section": "holdings"}}}
 
-6. **highlight** - Highlight specific symbols in the UI
+6. **show_comparison** - Show ESG comparison chart between symbols (fetches real ESG data)
    Payload: { symbols: string[] }
-   Example: {"action": {"type": "highlight", "payload": {"symbols": ["AAPL", "MSFT"]}}}
-
-7. **show_comparison** - Show comparison between symbols
-   Payload: { symbols: string[] }
-   Example: {"action": {"type": "show_comparison", "payload": {"symbols": ["NESN.SW", "ULVR.L"]}}}
+   Example: {"action": {"type": "show_comparison", "payload": {"symbols": ["AAPL", "MSFT"]}}}
 
 ### When to Use Actions
 - Use actions when the user explicitly requests changes (add, remove, filter, etc.)
 - Use navigate action when user asks to see a specific section
-- Use highlight/comparison for analysis requests
+- Use show_comparison to compare ESG scores between multiple stocks
+- Use create_alert when user wants to be notified about price changes
 
 ### Examples
 

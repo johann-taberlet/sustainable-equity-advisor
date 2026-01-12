@@ -18,10 +18,12 @@ export function PortfolioSummaryCard({
 
   // Determine which currency to use and whether to convert
   const displayCurrency = baseUSD ? contextCurrency : currencyProp;
-  const displayValue = baseUSD ? convertAmount(totalValue) : totalValue;
-  const displayChange = baseUSD ? convertAmount(change) : change;
+  const displayValue = baseUSD
+    ? convertAmount(totalValue ?? 0)
+    : (totalValue ?? 0);
+  const displayChange = baseUSD ? convertAmount(change ?? 0) : (change ?? 0);
 
-  const isPositive = change >= 0;
+  const isPositive = (change ?? 0) >= 0;
   const formattedValue = new Intl.NumberFormat("en-CH", {
     style: "currency",
     currency: displayCurrency,
@@ -49,7 +51,7 @@ export function PortfolioSummaryCard({
           <span>
             {isPositive ? "+" : ""}
             {displayCurrency} {displayChange.toLocaleString("en-CH")} (
-            {changePercent.toFixed(2)}%)
+            {(changePercent ?? 0).toFixed(2)}%)
           </span>
         </div>
         {esgScore !== undefined && (

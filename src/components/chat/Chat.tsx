@@ -1,7 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { HoldingsFilter } from "@/components/dashboard/HoldingsTablePro";
+import type { NavigationSection } from "@/components/layout/Sidebar";
 import { type ParsedAction, parseA2UIMessage } from "@/lib/a2ui/parser";
+import { type PriceAlert, parseAlertType, saveAlert } from "@/lib/alerts";
 import type { ChatMessage as ChatMessageType } from "@/lib/chat";
 import { useCurrency } from "@/lib/currency";
 import { ChatInput, type ChatInputHandle } from "./ChatInput";
@@ -23,10 +26,8 @@ function generateActionText(action: ParsedAction): string {
       return `Filtering holdings${payload.sector ? ` by ${payload.sector}` : ""}${payload.minEsg ? ` with ESG ≥ ${payload.minEsg}` : ""}.`;
     case "navigate":
       return `Navigating to ${payload.section}.`;
-    case "highlight":
-      return `Highlighting ${(payload.symbols as string[])?.join(", ")}.`;
     case "show_comparison":
-      return `Comparing ${(payload.symbols as string[])?.join(" vs ")}.`;
+      return `Comparing ESG scores for ${(payload.symbols as string[])?.join(" vs ")}.`;
     default:
       return `Action: ${action.type.replace(/_/g, " ")}`;
   }
@@ -65,6 +66,9 @@ export interface PortfolioHolding {
 
 interface ChatProps {
   onPortfolioUpdate?: (action: PortfolioAction) => void;
+  onNavigate?: (section: NavigationSection) => void;
+  onFilterHoldings?: (filter: HoldingsFilter) => void;
+  onAlertCreated?: (alert: PriceAlert) => void;
   getHoldingShares?: (symbol: string) => number;
   holdings?: PortfolioHolding[];
 }
@@ -103,6 +107,9 @@ function isPortfolioQuery(content: string): boolean {
 
 export function Chat({
   onPortfolioUpdate,
+  onNavigate,
+  onFilterHoldings,
+  onAlertCreated,
   getHoldingShares,
   holdings,
 }: ChatProps) {
@@ -182,9 +189,9 @@ export function Chat({
 
         // Generate fallback text if AI only returned JSON without text
         let displayContent = data.message;
-        const hasAnyActions = parsed.actions && parsed.actions.length > 0;
-        if (hasAnyActions && !parsed.text?.trim()) {
-          const actionTexts = parsed.actions?.map(generateActionText);
+        const actions = parsed.actions ?? [];
+        if (actions.length > 0 && !parsed.text?.trim()) {
+          const actionTexts = actions.map(generateActionText);
           displayContent = `${actionTexts.join("\n")}\n${data.message}`;
         }
 
@@ -209,6 +216,116 @@ export function Chat({
           { role: "user", content },
           { role: "assistant", content: data.message },
         ]);
+
+        // Execute navigate actions immediately
+        const navigateActions = (parsed.actions ?? []).filter(
+          (a) => a.type === "navigate",
+        );
+        for (const action of navigateActions) {
+          const payload = action.payload as { section?: NavigationSection };
+          if (payload.section && onNavigate) {
+            onNavigate(payload.section);
+          }
+        }
+
+        // Execute filter_holdings actions
+        const filterActions = (parsed.actions ?? []).filter(
+          (a) => a.type === "filter_holdings",
+        );
+        for (const action of filterActions) {
+          const payload = action.payload as {
+            sector?: string;
+            minEsg?: number;
+            maxEsg?: number;
+          };
+          if (
+            onFilterHoldings &&
+            (payload.sector || payload.minEsg || payload.maxEsg)
+          ) {
+            onFilterHoldings({
+              sector: payload.sector,
+              minEsg: payload.minEsg,
+              maxEsg: payload.maxEsg,
+            });
+          }
+        }
+
+        // Execute show_comparison actions - fetch ESG data and show inline chart
+        const comparisonActions = (parsed.actions ?? []).filter(
+          (a) => a.type === "show_comparison",
+        );
+        for (const action of comparisonActions) {
+          const payload = action.payload as { symbols?: string[] };
+          if (payload.symbols && payload.symbols.length >= 2) {
+            try {
+              // Fetch ESG data for the symbols
+              const response = await fetch(
+                `/api/esg?symbols=${encodeURIComponent(payload.symbols.join(","))}`,
+              );
+              if (response.ok) {
+                const result = await response.json();
+                const companies = payload.symbols
+                  .map((symbol) => {
+                    const esgData = result.data[symbol];
+                    if (esgData) {
+                      return {
+                        symbol: esgData.symbol,
+                        name: esgData.companyName || symbol,
+                        esgScore: esgData.esgScore || 0,
+                        environmental: esgData.environmentalScore,
+                        social: esgData.socialScore,
+                        governance: esgData.governanceScore,
+                      };
+                    }
+                    // Include even if no ESG data found
+                    return {
+                      symbol,
+                      name: symbol,
+                      esgScore: 0,
+                    };
+                  })
+                  .filter((c) => c.esgScore > 0);
+
+                if (companies.length >= 2) {
+                  // Create synthetic message with comparison chart
+                  const comparisonMessage: ExtendedChatMessage = {
+                    id: crypto.randomUUID(),
+                    role: "assistant",
+                    content: `Here's the ESG comparison:\n{"surfaceUpdate": {"component": "ESGComparisonChart", "props": {"companies": ${JSON.stringify(companies)}}}}`,
+                    timestamp: new Date(),
+                  };
+                  setMessages((prev) => [...prev, comparisonMessage]);
+                }
+              }
+            } catch (error) {
+              console.error("Error fetching comparison data:", error);
+            }
+          }
+        }
+
+        // Execute create_alert actions
+        const alertActions = (parsed.actions ?? []).filter(
+          (a) => a.type === "create_alert",
+        );
+        for (const action of alertActions) {
+          const payload = action.payload as {
+            symbol?: string;
+            alertType?: string;
+            value?: number;
+          };
+          if (payload.symbol && payload.alertType && payload.value) {
+            const operator = parseAlertType(payload.alertType);
+            if (operator) {
+              const alert = saveAlert({
+                symbol: payload.symbol.toUpperCase(),
+                operator,
+                targetPrice: payload.value,
+                status: "active",
+              });
+              onAlertCreated?.(alert);
+            }
+          }
+        }
 
         // Execute portfolio actions from the AI response
         if (hasPortfolioActions) {
@@ -307,6 +424,9 @@ export function Chat({
     [
       conversationHistory,
       onPortfolioUpdate,
+      onNavigate,
+      onFilterHoldings,
+      onAlertCreated,
       getHoldingShares,
       holdings,
       currency,

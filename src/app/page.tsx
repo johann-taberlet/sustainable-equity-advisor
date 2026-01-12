@@ -15,13 +15,23 @@ import { AIPanel } from "@/components/ai/AIPanel";
 import { Chat, type PortfolioAction } from "@/components/chat";
 import { ESGDashboard } from "@/components/dashboard/ESGDashboard";
 import { ESGScreening } from "@/components/dashboard/ESGScreening";
-import { HoldingsTablePro } from "@/components/dashboard/HoldingsTablePro";
+import {
+  type HoldingsFilter,
+  HoldingsTablePro,
+} from "@/components/dashboard/HoldingsTablePro";
 import { PerformanceChart } from "@/components/dashboard/PerformanceChart";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import { Header } from "@/components/layout/Header";
 import { type NavigationSection, Sidebar } from "@/components/layout/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import {
+  getActiveAlerts,
+  getOperatorText,
+  type PriceAlert,
+  shouldTrigger,
+  updateAlertStatus,
+} from "@/lib/alerts";
 import { useCurrency } from "@/lib/currency";
 
 interface ESGData {
@@ -88,6 +98,9 @@ export default function Home() {
   );
   const [holdings, setHoldings] = useState<Holding[]>([]); // Values stored in USD
   const [aiPanelOpen, setAiPanelOpen] = useState(true);
+  const [holdingsFilter, setHoldingsFilter] = useState<HoldingsFilter | null>(
+    null,
+  );
 
   // Currency from context (reactive to changes)
   const { formatAmount } = useCurrency();
@@ -223,6 +236,66 @@ export default function Home() {
 
   const handleRemoveHolding = useCallback((symbol: string) => {
     setHoldings((prev) => prev.filter((h) => h.symbol !== symbol));
+  }, []);
+
+  const handleFilterHoldings = useCallback((filter: HoldingsFilter) => {
+    setHoldingsFilter(filter);
+    setActiveSection("holdings"); // Navigate to holdings to see results
+    const filterDesc = [
+      filter.sector && `sector: ${filter.sector}`,
+      filter.minEsg && `ESG ≥ ${filter.minEsg}`,
+      filter.maxEsg && `ESG ≤ ${filter.maxEsg}`,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    toast.success(`Filter applied: ${filterDesc}`);
+  }, []);
+
+  const handleAlertCreated = useCallback((alert: PriceAlert) => {
+    toast.success(
+      `Alert created: ${alert.symbol} ${getOperatorText(alert.operator)} $${alert.targetPrice}`,
+    );
+  }, []);
+
+  // Check for triggered alerts on mount
+  useEffect(() => {
+    const checkAlerts = async () => {
+      const activeAlerts = getActiveAlerts();
+      if (activeAlerts.length === 0) return;
+
+      // Get unique symbols
+      const symbols = [...new Set(activeAlerts.map((a) => a.symbol))];
+
+      try {
+        // Fetch current prices for all symbols
+        for (const symbol of symbols) {
+          const response = await fetch(
+            `/api/stock?symbol=${encodeURIComponent(symbol)}`,
+          );
+          if (response.ok) {
+            const data = await response.json();
+            const currentPrice = data.price;
+
+            // Check each alert for this symbol
+            for (const alert of activeAlerts.filter(
+              (a) => a.symbol === symbol,
+            )) {
+              if (shouldTrigger(alert, currentPrice)) {
+                updateAlertStatus(alert.id, "triggered");
+                toast.info(
+                  `Price Alert: ${alert.symbol} is now ${getOperatorText(alert.operator)} $${alert.targetPrice} (current: $${currentPrice.toFixed(2)})`,
+                  { duration: 10000 },
+                );
+              }
+            }
+          }
+        }
+      } catch (error) {
+        console.error("Error checking alerts:", error);
+      }
+    };
+
+    checkAlerts();
   }, []);
 
   const totalValue = holdings.reduce((sum, h) => sum + h.value, 0);
@@ -595,6 +668,8 @@ export default function Home() {
                 <HoldingsTablePro
                   holdings={holdings}
                   onRemove={handleRemoveHolding}
+                  filter={holdingsFilter}
+                  onClearFilter={() => setHoldingsFilter(null)}
                 />
               </CardContent>
             </Card>
@@ -700,6 +775,9 @@ export default function Home() {
           <div data-testid="chat-content" className="h-full">
             <Chat
               onPortfolioUpdate={handlePortfolioUpdate}
+              onNavigate={setActiveSection}
+              onFilterHoldings={handleFilterHoldings}
+              onAlertCreated={handleAlertCreated}
               getHoldingShares={getHoldingShares}
               holdings={holdings}
             />

@@ -169,8 +169,8 @@ export function PerformanceChart({
           ))}
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="h-72">
+      <CardContent className="pt-2">
+        <div className="h-56">
           <ResponsiveContainer width="100%" height="100%">
             <LineChart data={formattedData}>
               <CartesianGrid

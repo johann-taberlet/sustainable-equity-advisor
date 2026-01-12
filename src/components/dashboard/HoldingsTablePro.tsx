@@ -48,10 +48,18 @@ export interface HoldingRow {
 type SortKey = "symbol" | "name" | "shares" | "value" | "esgScore" | "change";
 type SortDirection = "asc" | "desc";
 
+export interface HoldingsFilter {
+  sector?: string;
+  minEsg?: number;
+  maxEsg?: number;
+}
+
 interface HoldingsTableProProps {
   holdings: HoldingRow[];
   onRemove?: (symbol: string) => void;
   highlightedSymbols?: string[];
+  filter?: HoldingsFilter | null;
+  onClearFilter?: () => void;
 }
 
 function getESGColorClass(score: number): string {
@@ -65,6 +73,8 @@ export function HoldingsTablePro({
   holdings,
   onRemove,
   highlightedSymbols = [],
+  filter,
+  onClearFilter,
 }: HoldingsTableProProps) {
   // Get currency from context
   const { currency, convertAmount } = useCurrency();
@@ -72,6 +82,11 @@ export function HoldingsTablePro({
   const [sortDirection, setSortDirection] = useState<SortDirection>("desc");
   const [sectorFilter, setSectorFilter] = useState<string>("all");
   const [minEsgFilter, setMinEsgFilter] = useState<string>("");
+
+  // External filter from chat takes precedence
+  const effectiveSectorFilter = filter?.sector || sectorFilter;
+  const effectiveMinEsgFilter = filter?.minEsg?.toString() || minEsgFilter;
+  const hasExternalFilter = !!(filter?.sector || filter?.minEsg);
 
   // Get unique sectors
   const sectors = useMemo(() => {
@@ -83,17 +98,23 @@ export function HoldingsTablePro({
   const filteredHoldings = useMemo(() => {
     let result = [...holdings];
 
-    // Apply sector filter
-    if (sectorFilter !== "all") {
-      result = result.filter((h) => h.sector === sectorFilter);
+    // Apply sector filter (use effective filter)
+    if (effectiveSectorFilter !== "all" && effectiveSectorFilter) {
+      result = result.filter((h) => h.sector === effectiveSectorFilter);
     }
 
-    // Apply ESG filter
-    if (minEsgFilter) {
-      const minEsg = parseInt(minEsgFilter, 10);
+    // Apply ESG filter (use effective filter)
+    if (effectiveMinEsgFilter) {
+      const minEsg = Number.parseInt(effectiveMinEsgFilter, 10);
       if (!Number.isNaN(minEsg)) {
         result = result.filter((h) => h.esgScore >= minEsg);
       }
+    }
+
+    // Apply maxEsg filter from external filter
+    if (filter?.maxEsg !== undefined) {
+      const maxEsg = filter.maxEsg;
+      result = result.filter((h) => h.esgScore <= maxEsg);
     }
 
     // Sort
@@ -113,7 +134,14 @@ export function HoldingsTablePro({
     });
 
     return result;
-  }, [holdings, sortKey, sortDirection, sectorFilter, minEsgFilter]);
+  }, [
+    holdings,
+    sortKey,
+    sortDirection,
+    effectiveSectorFilter,
+    effectiveMinEsgFilter,
+    filter?.maxEsg,
+  ]);
 
   const handleSort = (key: SortKey) => {
     if (sortKey === key) {
@@ -139,9 +167,35 @@ export function HoldingsTablePro({
 
   return (
     <div className="space-y-4" data-testid="holdings-table-pro">
+      {/* External filter badge */}
+      {hasExternalFilter && (
+        <div className="flex items-center gap-2 rounded-md bg-blue-50 dark:bg-blue-950/30 px-3 py-2">
+          <span className="text-sm text-blue-700 dark:text-blue-300">
+            Filter from chat:
+            {filter?.sector && ` ${filter.sector}`}
+            {filter?.minEsg && ` ESG ≥ ${filter.minEsg}`}
+            {filter?.maxEsg && ` ESG ≤ ${filter.maxEsg}`}
+          </span>
+          {onClearFilter && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onClearFilter}
+              className="h-6 px-2 text-xs text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/50"
+            >
+              Clear
+            </Button>
+          )}
+        </div>
+      )}
+
       {/* Filters */}
       <div className="flex flex-wrap items-center gap-4">
-        <Select value={sectorFilter} onValueChange={setSectorFilter}>
+        <Select
+          value={hasExternalFilter ? filter?.sector || "all" : sectorFilter}
+          onValueChange={setSectorFilter}
+          disabled={hasExternalFilter}
+        >
           <SelectTrigger className="w-[180px]" data-testid="sector-filter">
             <SelectValue placeholder="All Sectors" />
           </SelectTrigger>
@@ -161,11 +215,16 @@ export function HoldingsTablePro({
             type="number"
             min={0}
             max={100}
-            value={minEsgFilter}
+            value={
+              hasExternalFilter
+                ? filter?.minEsg?.toString() || ""
+                : minEsgFilter
+            }
             onChange={(e) => setMinEsgFilter(e.target.value)}
             className="w-20"
             placeholder="0"
             data-testid="esg-filter"
+            disabled={hasExternalFilter}
           />
         </div>
 

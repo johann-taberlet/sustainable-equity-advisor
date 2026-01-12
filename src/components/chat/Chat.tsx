@@ -137,9 +137,10 @@ export function Chat({
     }
   }, []);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: Intentionally trigger scroll when messages or isLoading changes
   useEffect(() => {
     scrollToBottom();
-  }, [scrollToBottom]);
+  }, [messages, isLoading, scrollToBottom]);
 
   const handleSend = useCallback(
     async (content: string) => {

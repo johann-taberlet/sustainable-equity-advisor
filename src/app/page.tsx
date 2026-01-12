@@ -265,6 +265,14 @@ export default function Home() {
   const handleFilterHoldings = useCallback((filter: HoldingsFilter) => {
     setHoldingsFilter(filter);
     setActiveSection("holdings"); // Navigate to holdings to see results
+    const filterDesc = [
+      filter.sector && `sector: ${filter.sector}`,
+      filter.minEsg && `ESG ≥ ${filter.minEsg}`,
+      filter.maxEsg && `ESG ≤ ${filter.maxEsg}`,
+    ]
+      .filter(Boolean)
+      .join(", ");
+    toast.success(`Filter applied: ${filterDesc}`);
   }, []);
 
   const handleAlertCreated = useCallback((alert: PriceAlert) => {

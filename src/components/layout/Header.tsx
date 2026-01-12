@@ -1,6 +1,7 @@
 "use client";
 
-import { ChevronDown, Info } from "lucide-react";
+import { Bell, ChevronDown, Info, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +15,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  deleteAlert,
+  getActiveAlerts,
+  getOperatorText,
+  type PriceAlert,
+} from "@/lib/alerts";
 import { CURRENCIES, useCurrency } from "@/lib/currency";
 import { cn } from "@/lib/utils";
 
@@ -78,9 +85,33 @@ export function Header({
   isAIPanelOpen,
 }: HeaderProps) {
   const { currency, setCurrency } = useCurrency();
+  const [alerts, setAlerts] = useState<PriceAlert[]>([]);
   const selectedPortfolio = portfolios.find(
     (p) => p.id === selectedPortfolioId,
   );
+
+  // Load alerts on mount and listen for changes
+  useEffect(() => {
+    const loadAlerts = () => setAlerts(getActiveAlerts());
+    loadAlerts();
+
+    // Listen for storage changes (from other tabs or alert creation)
+    const handleStorage = () => loadAlerts();
+    window.addEventListener("storage", handleStorage);
+
+    // Also refresh periodically to catch new alerts from same tab
+    const interval = setInterval(loadAlerts, 2000);
+
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleDeleteAlert = (id: string) => {
+    deleteAlert(id);
+    setAlerts(getActiveAlerts());
+  };
 
   return (
     <div className="flex flex-1 items-center justify-between">
@@ -167,6 +198,60 @@ export function Header({
 
       {/* Right: Actions */}
       <div className="flex items-center gap-2">
+        {/* Alerts dropdown */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="relative"
+              aria-label="View price alerts"
+            >
+              <Bell className="h-5 w-5" />
+              {alerts.length > 0 && (
+                <span className="absolute -right-0.5 -top-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                  {alerts.length}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="end">
+            <div className="space-y-2">
+              <p className="font-medium">Price Alerts</p>
+              {alerts.length === 0 ? (
+                <p className="text-sm text-muted-foreground">
+                  No active alerts. Ask the AI to set one!
+                </p>
+              ) : (
+                <div className="space-y-2 max-h-64 overflow-y-auto">
+                  {alerts.map((alert) => (
+                    <div
+                      key={alert.id}
+                      className="flex items-center justify-between rounded-md border p-2"
+                    >
+                      <div className="text-sm">
+                        <span className="font-medium">{alert.symbol}</span>{" "}
+                        <span className="text-muted-foreground">
+                          {getOperatorText(alert.operator)} ${alert.targetPrice}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive"
+                        onClick={() => handleDeleteAlert(alert.id)}
+                        aria-label={`Delete alert for ${alert.symbol}`}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         <ThemeToggle />
 
         {/* AI Chat toggle with chatbot icon */}

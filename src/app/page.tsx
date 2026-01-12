@@ -759,22 +759,6 @@ export default function Home() {
           </div>
         );
 
-      case "settings":
-        return (
-          <div data-testid="settings-content" className="space-y-4">
-            <Card>
-              <CardHeader>
-                <CardTitle>Settings</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-muted-foreground">
-                  Configure your preferences
-                </p>
-              </CardContent>
-            </Card>
-          </div>
-        );
-
       default:
         return null;
     }

@@ -1,21 +1,10 @@
 "use client";
 
-import {
-  Briefcase,
-  Filter,
-  LayoutDashboard,
-  Leaf,
-  Settings,
-} from "lucide-react";
+import { Briefcase, Filter, Github, LayoutDashboard, Leaf } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-export type NavigationSection =
-  | "dashboard"
-  | "holdings"
-  | "esg"
-  | "screening"
-  | "settings";
+export type NavigationSection = "dashboard" | "holdings" | "esg" | "screening";
 
 interface NavItem {
   id: NavigationSection;
@@ -28,7 +17,6 @@ const navItems: NavItem[] = [
   { id: "holdings", label: "Holdings", icon: Briefcase },
   { id: "esg", label: "ESG Analysis", icon: Leaf },
   { id: "screening", label: "Screening", icon: Filter },
-  { id: "settings", label: "Settings", icon: Settings },
 ];
 
 interface SidebarProps {
@@ -75,9 +63,20 @@ export function Sidebar({ activeSection, onNavigate }: SidebarProps) {
 
       {/* Footer */}
       <div className="border-t p-4">
-        <p className="text-xs text-muted-foreground">
-          &copy; 2026 Montblanc Capital
-        </p>
+        <div className="flex items-center justify-between">
+          <p className="text-xs text-muted-foreground">
+            &copy; 2026 Montblanc Capital
+          </p>
+          <a
+            href="https://github.com/johann-taberlet/sustainable-equity-advisor"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors"
+            aria-label="View source on GitHub"
+          >
+            <Github className="h-4 w-4" />
+          </a>
+        </div>
       </div>
     </div>
   );

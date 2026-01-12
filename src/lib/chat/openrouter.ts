@@ -125,7 +125,7 @@ You can execute dashboard actions by including action JSON in your response. Use
    Example: {"action": {"type": "create_alert", "payload": {"symbol": "MSFT", "alertType": "price_above", "value": 400}}}
 
 6. **navigate** - Navigate to a dashboard section
-   Payload: { section: "dashboard" | "holdings" | "esg" | "screening" | "settings" }
+   Payload: { section: "dashboard" | "holdings" | "esg" | "screening" }
    Example: {"action": {"type": "navigate", "payload": {"section": "holdings"}}}
 
 7. **show_comparison** - Show ESG comparison chart between symbols (fetches real ESG data)
